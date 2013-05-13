@@ -1,0 +1,214 @@
+;*******************************************************************************
+LHSName  "Mollana-urdu"
+RHSName  "UNICODE"
+;*******************************************************************************
+Define a U+0061  ;a
+Define b U+0062  ;b
+Define c U+0063  ;c
+Define d U+0064  ;d
+Define e U+0065  ;e
+Define f U+0066  ;f
+Define g U+0067  ;g
+Define h U+0068  ;h
+Define i U+0069  ;i
+Define j U+006A  ;j
+Define k U+006B  ;k
+Define l U+006C  ;l
+Define m U+006D  ;m
+Define n U+006E  ;n
+Define o U+006F  ;o
+Define p U+0070  ;p
+Define q U+0071  ;q
+Define r U+0072  ;r
+Define s U+0073  ;s
+Define t U+0074  ;t
+Define u U+0075  ;u
+Define v U+0076  ;v
+Define w U+0077  ;w
+Define x U+0078  ;x
+Define y U+0079  ;y
+Define z U+007A  ;z
+;*******************************************************************************
+Define A U+0041  ;A
+Define B U+0042  ;B
+;Define C U+0043  ;C - for CARET
+Define D U+0044  ;D
+Define E U+0045  ;E
+;Define F U+0046  ;F - Unused
+Define G U+0047  ;G
+Define H U+0048  ;H
+Define I U+0049  ;I
+;Define J U+004A  ;J - Unused
+Define K U+004B  ;K
+;Define L U+004C  ;L - for Hyphen
+;Define M U+004D  ;M - for HAMZA
+Define N U+004E  ;N
+Define O U+004F  ;O - for HAMZA
+;Define P U+0050  ;P - for FULL STOP (PERIOD)
+;Define Q U+0051  ;Q - Unused
+Define R U+0052  ;R
+Define S U+0053  ;S
+Define T U+0054  ;T
+Define U U+0055  ;U
+;Define V U+0056  ;V - for comma
+Define W U+0057  ;W
+;Define X U+0058  ;X - for APOSTROPHE
+Define Y U+0059  ;Y
+Define Z U+005A  ;Z
+;*******************************************************************************
+Define C U+005E  ;^  << CARET
+Define UL U+005F ;_  << UNDERLINE
+Define P U+002E  ;.  << DOT
+Define V U+002C  ;,  << COMMA (_V_irgule)
+Define CO U+003A ;:  << COLON
+Define SC U+003B ;; << SEMICOLON
+Define M U+0060  ;`  << HAMZA
+Define X U+0027  ;'  << APOSTROPHE
+Define Q U+0022  ;"  << QUOTE
+Define L U+002D  ;-  << HYPHEN (_L_ine)
+Define BAR U+007C ;|
+
+Define QSM U+003F  ;-  << QUESTION MARK
+Define PCS U+0025  ;-  << PERCENTAGE SIGN
+
+Define SP U+0020  ;SPACE
+Define CR U+000D  ;Carriage Return
+Define LF U+000A  ;Line Feed
+Define TAB U+0009  ;Tab
+
+;*******************************************************************************
+pass(Unicode)
+
+; Izafat
+L e / _ SP > i
+
+; Ettaf
+L o / _ SP > SP o
+
+;*******************************************************************************
+pass(Unicode)
+Class [Digits] = (U+0030..U+0039)
+Class [ArEasternDigits] = (U+06F0..U+06F9)
+
+Class [BRACKETS]    = (U+003C U+003E U+00AB U+00BB U+0028 U+0029 U+005B U+005D U+2018 U+2019 U+201C U+201D); < > () « » [ ] ‘ ’ “ ”
+
+Define BEG  (#|P P|V|QSM|SC|CO|[BRACKETS]|SP|CR LF|LF|TAB)
+Define END  (P P|V|QSM|SC|CO|[BRACKETS]|SP|CR LF|LF|TAB|#)
+
+U+0028 U+0028 > U+FD3F ;; '((' : ornate right par
+U+0029 U+0029 > U+FD3E ;; '))' : ornate left par
+
+U+0041 U+004C U+004C U+0041 U+0048 > U+FDF2 ; 'ALLAH'
+U+0041 U+004B U+0042 U+0041 U+0052 > U+FDF3 ;; 'AKBAR'
+
+U+004D U+0055 U+0048 U+0041 U+004D U+004D U+0041 U+0044 > U+FDF4 ;; 'MUHAMMAD'
+U+0053 U+0041 U+004C U+0041 U+004D > U+FDF5 ;; 'SALAM'
+U+0052 U+0041 U+0053 U+004F ? U+0055 U+004C > U+FDF6 ;; 'RASUL'
+U+0041 U+004C U+0041 U+0059 U+0048 (U+0049|U+0045) > U+FDF7 ;; 'ALAYHI'
+U+0057 U+0041 U+0053 U+0041 U+004C U+004C U+0041 U+004D > U+FDF8 ;; 'WASALLAM'
+U+0053 U+0041 U+004C U+004C U+0041 > U+FDF9 ;; 'SALLA'
+
+U+0053 U+004C U+004D > U+FDFA ; 'SLM' : .sallY al-ll_ah `alayhi wa-sallam
+U+004A U+0041 U+004C U+004C U+0041 > U+FDFB ;; 'JALLA' : "jalla jalAluhu"
+U+0042 U+0049 U+0053 U+004D U+0049 U+004C U+004C U+0041 U+0048 > U+FDFD ;; 'BISMILLAH'
+
+U+0050 U+0042 U+0055 U+0048 > U+0610 ;; 'PBUH' ARABIC SIGN SALLALLAHOU ALAYHE WASSALLAM
+U+0041 U+004C U+0059        > U+0611 ;; 'ALY' ARABIC SIGN ALAYHE WASALAM
+U+0052 U+0048 U+004D U+0054 > U+0612
+ ;; 'RHMT' ARABIC SIGN ALAYHE WASALAM
+U+0052 U+0041 U+0044 U+0049 > U+0613
+
+;; 'RADI' ARABIC SIGN ALAYHE WASALAM
+U+0054 U+004B U+0048        > U+0614
+
+;; 'TKH' ARABIC SIGN ALAYHE WASALAM
+
+U+004E U+0055 U+004D U+0042 U+0045 U+0052 > U+0600 ;; NUMBER
+U+0053 U+0041 U+004E U+0041 U+0048 > U+0601 ;; SANAH
+U+0046 U+004F U+004F U+0054 U+004E U+004F U+0054 U+0045 > U+0602 ;; FOOTNOTE
+U+0053 U+0041 U+0046 U+0048 U+0041 > U+0603 ;; SAFHA
+U+0053 U+0048 U+0045 U+0052 > U+060E ;; SHER
+U+004D U+0049 U+0053 U+0052 U+0041 > U+060F ;; MISRA
+[Digits] > [ArEasternDigits]    ; Digits
+
+a / BEG _ > U+0627
+A / BEG _ > U+0627 U+064E
+i / BEG _ > U+0627
+I / BEG _ > U+0627 U+0650
+u / BEG _ > U+0627
+U / BEG _ > U+0627 U+064F
+
+a N / _ END > U+0648    ; Fathatan
+u N / _ END > U+0649    ; Dammatan
+i N / _ END > U+064A    ; Kasratan
+
+a       > U+064E    ; Fathah / Zaber
+i       > U+0650    ; Kasrah / Zear
+u       > U+064F    ; Dammah / Peash
+
+C A     > U+0622        ; Alef with Maddah
+A       > U+0627        ; Alef
+
+b       > U+0628        ; Bey
+b b     > U+0628 U+0651 ; Bey + Shaddah
+
+p       > U+067E        ; Pey
+
+t       > U+062A        ; Tay
+t t     > U+062A U+0651 ; Tay + Shaddah
+
+T       > U+0679    ; TTay
+
+X s     > U+062B    ; Say
+
+j       > U+062C    ; Jeem
+c       > U+0686    ; Chay
+X h     > U+062D    ; Heah
+X k     > U+062E    ; Kheah
+d       > U+062F    ; Dal
+D       > U+0688    ; DDal
+Z       > U+0630    ; Zaal
+r       > U+0631    ; Ray
+R       > U+0691    ; RRay
+z       > U+0632    ; Zay
+X z     > U+0698    ; Say
+s       > U+0633    ; Seen
+S       > U+0634    ; Sheen
+P s     > U+0635    ; Swad
+P z     > U+0636    ; Zwad
+V t     > U+0637    ; Toay
+V z     > U+0638    ; Zoay
+e       > U+0639    ; Ein
+G       > U+063A    ; Ghain
+f       > U+0641    ; Fay
+q       > U+0642    ; Qaf
+k       > U+06A9    ; Kaf with Markaz
+K       > U+0643    ; Arabic Kaf
+g       > U+06AF    ; Gaf
+l       > U+0644    ; Lam
+m       > U+0645    ; Meen
+n       > U+0646    ; Noon
+N       > U+06BA    ; Noon Ghunna
+v       > U+0648    ; Waw
+v v     > U+0648 U+0651   ; Waw + Shaddah
+o       > U+0648    ; -do-
+U       > U+0648    ; -do-
+H       > U+06C1    ; Heh Goal
+h       > U+06BE    ; Heh Do Cheshmee
+M       > U+0621    ; Hamza
+O       > U+0654    ; Hamza as Mark
+y       > U+06CC    ; Yey Chotee without Dots
+Y       > U+0626    ; Yey Chotee with Hamza Above
+E       > U+06D2    ; Yey Baree
+P t     > U+0629    ; Teh Marbuta
+
+C       > U+0652    ; Jazm
+P P     > U+06D4    ; Arabic Full Stop
+V       > U+060C    ; Arabic Comma
+QSM     > U+061F    ; Arabic Question Mark
+SC      > U+061B    ; Arabic Semicolon
+PCS     > U+066A    ; Arabic Percentage Sign
+L L     > U+0640    ; Arabic Tatweel
+
+BAR       >   ;| Remove bar as it is only a seperator
+

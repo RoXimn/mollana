@@ -1,0 +1,29 @@
+<RCC>
+    <qresource prefix="/maps">
+        <file>maps/mollana-urdu.tec</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file>png32/new.png</file>
+        <file>png32/shut_down.png</file>
+        <file>png32/copy_paste.png</file>
+        <file>png32/cut.png</file>
+        <file>png32/phone_book_edit.png</file>
+        <file>png32/accept_page.png</file>
+        <file>png32/refresh_page.png</file>
+        <file>png32/help_balloon.png</file>
+        <file>png32/help.png</file>
+        <file>png32/add_to_open_folder.png</file>
+        <file>png32/save.png</file>
+        <file>png32/transfer.png</file>
+        <file>png32/blue_arrow_down.png</file>
+        <file>png32/blue_arrow_up.png</file>
+        <file>png32/add_page.png</file>
+        <file>png32/office_folders.png</file>
+        <file>png32/open_folder_info.png</file>
+        <file>png32/search_page.png</file>
+        <file>png32/text_page.png</file>
+        <file>png32/chalk_board.png</file>
+        <file>png32/mollana.png</file>
+        <file>png32/mollana64.png</file>
+    </qresource>
+</RCC>

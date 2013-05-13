@@ -1,0 +1,30 @@
+; TECkit_x86.def : Declares the exported public functions of the DLL.
+
+LIBRARY      "TECkit_x86"
+DESCRIPTION  'SIL TECkit Windows Dynamic Link Library'
+
+EXPORTS
+	TECkit_ConvertBuffer
+	TECkit_ConvertBuffer@32
+	TECkit_ConvertBufferOpt
+	TECkit_ConvertBufferOpt@36
+	TECkit_CreateConverter
+	TECkit_CreateConverter@24
+	TECkit_DisposeConverter
+	TECkit_DisposeConverter@4
+	TECkit_Flush
+	TECkit_Flush@16
+	TECkit_FlushOpt
+	TECkit_FlushOpt@24
+	TECkit_GetConverterFlags
+	TECkit_GetConverterFlags@12
+	TECkit_GetConverterName
+	TECkit_GetConverterName@20
+	TECkit_GetMappingFlags
+	TECkit_GetMappingFlags@16
+	TECkit_GetMappingName
+	TECkit_GetMappingName@24
+	TECkit_GetVersion
+	TECkit_GetVersion@0
+	TECkit_ResetConverter
+	TECkit_ResetConverter@4
