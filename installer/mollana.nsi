@@ -57,6 +57,8 @@ Section "MainSection" SEC01
   File "..\..\build-mollana-Desktop_Qt_5_0_2_MSVC2010_32bit-Release\release\Qt5Core.dll"
   File "..\..\build-mollana-Desktop_Qt_5_0_2_MSVC2010_32bit-Release\release\libGLESv2.dll"
   File "..\..\build-mollana-Desktop_Qt_5_0_2_MSVC2010_32bit-Release\release\libEGL.dll"
+  File "..\..\build-mollana-Desktop_Qt_5_0_2_MSVC2010_32bit-Release\release\D3DCompiler_43.dll"
+  File "..\..\build-mollana-Desktop_Qt_5_0_2_MSVC2010_32bit-Release\release\icudt49.dll"
   File "..\..\build-mollana-Desktop_Qt_5_0_2_MSVC2010_32bit-Release\release\icuuc49.dll"
   File "..\..\build-mollana-Desktop_Qt_5_0_2_MSVC2010_32bit-Release\release\icuin49.dll"
   File "..\..\build-mollana-Desktop_Qt_5_0_2_MSVC2010_32bit-Release\release\mollana.exe"
