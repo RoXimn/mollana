@@ -8,7 +8,7 @@
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 
-!define QT_DIRECTORY "E:\Qt\5.0.2\msvc2010"
+!define QT_DIRECTORY "E:\Qt-MSVC\5.0.2\msvc2010"
 
 ; MUI 1.67 compatible ------
 !include "MUI.nsh"
@@ -51,17 +51,17 @@ ShowUnInstDetails show
 Section "MainSection" SEC01
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
-  File "..\..\build-mollana-Desktop_Qt_5_0_2_MSVC2010_32bit-Release\release\TECkit_x86.dll"
-  File "..\..\build-mollana-Desktop_Qt_5_0_2_MSVC2010_32bit-Release\release\Qt5Widgets.dll"
-  File "..\..\build-mollana-Desktop_Qt_5_0_2_MSVC2010_32bit-Release\release\Qt5Gui.dll"
-  File "..\..\build-mollana-Desktop_Qt_5_0_2_MSVC2010_32bit-Release\release\Qt5Core.dll"
-  File "..\..\build-mollana-Desktop_Qt_5_0_2_MSVC2010_32bit-Release\release\libGLESv2.dll"
-  File "..\..\build-mollana-Desktop_Qt_5_0_2_MSVC2010_32bit-Release\release\libEGL.dll"
-  File "..\..\build-mollana-Desktop_Qt_5_0_2_MSVC2010_32bit-Release\release\D3DCompiler_43.dll"
-  File "..\..\build-mollana-Desktop_Qt_5_0_2_MSVC2010_32bit-Release\release\icudt49.dll"
-  File "..\..\build-mollana-Desktop_Qt_5_0_2_MSVC2010_32bit-Release\release\icuuc49.dll"
-  File "..\..\build-mollana-Desktop_Qt_5_0_2_MSVC2010_32bit-Release\release\icuin49.dll"
   File "..\..\build-mollana-Desktop_Qt_5_0_2_MSVC2010_32bit-Release\release\mollana.exe"
+  File "..\teckit\TECkit_x86.dll"
+  File "${QT_DIRECTORY}\bin\Qt5Widgets.dll"
+  File "${QT_DIRECTORY}\bin\Qt5Gui.dll"
+  File "${QT_DIRECTORY}\bin\Qt5Core.dll"
+  File "${QT_DIRECTORY}\bin\libGLESv2.dll"
+  File "${QT_DIRECTORY}\bin\libEGL.dll"
+  File "${QT_DIRECTORY}\bin\icuuc49.dll"
+  File "${QT_DIRECTORY}\bin\icuin49.dll"
+  File "${QT_DIRECTORY}\bin\icudt49.dll"
+  File "${QT_DIRECTORY}\bin\D3DCompiler_43.dll"
 
   CreateDirectory "$SMPROGRAMS\Mollana"
   
@@ -118,7 +118,10 @@ Section Uninstall
   Delete "$INSTDIR\Qt5Gui.dll"
   Delete "$INSTDIR\Qt5Widgets.dll"
   Delete "$INSTDIR\TECkit_x86.dll"
+  Delete "$INSTDIR\icudt49.dll"
+  Delete "$INSTDIR\D3DCompiler_43.dll"
 
+  
   Delete "$SMPROGRAMS\Mollana\Uninstall.lnk"
   Delete "$DESKTOP\Mollana.lnk"
   Delete "$SMPROGRAMS\Mollana\Mollana.lnk"
