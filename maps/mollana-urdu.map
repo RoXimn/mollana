@@ -1,7 +1,7 @@
 ;*******************************************************************************
 EncodingName     "MOLLANA-URDU-2013"
 DescriptiveName  "Mollana - Urdu roman transliteration mapping"
-Version          "1"
+Version          "1.1"
 Contact          "DrIYousaf@Gmail.com"
 Copyright        "(c) RoXimn 2013"
 
@@ -102,9 +102,12 @@ Class [BRACKETS]    = (U+003C U+003E U+00AB U+00BB U+0028 U+0029 U+005B U+005D U
 Define BEG  (#|P P|V|QSM|SC|CO|[BRACKETS]|SP|CR LF|LF|TAB)
 Define END  (P P|V|QSM|SC|CO|[BRACKETS]|SP|CR LF|LF|TAB|#)
 
+;-------------------------------------------------------------------------------
 U+0028 U+0028 > U+FD3F ;; '((' : ornate right par
 U+0029 U+0029 > U+FD3E ;; '))' : ornate left par
 
+;-------------------------------------------------------------------------------
+; LIAGTURES
 U+0041 U+004C U+004C U+0041 U+0048 > U+FDF2 ; 'ALLAH'
 U+0041 U+004B U+0042 U+0041 U+0052 > U+FDF3 ;; 'AKBAR'
 
@@ -131,8 +134,8 @@ U+0046 U+004F U+004F U+0054 U+004E U+004F U+0054 U+0045 > U+0602 ;; FOOTNOTE
 U+0053 U+0041 U+0046 U+0048 U+0041 > U+0603 ;; SAFHA
 U+0053 U+0048 U+0045 U+0052 > U+060E ;; SHER
 U+004D U+0049 U+0053 U+0052 U+0041 > U+060F ;; MISRA
-[Digits] > [ArEasternDigits]    ; Digits
 
+;-------------------------------------------------------------------------------
 a a > U+0670    ; Superscript Alef
 i i > U+0656    ; Suubscript Alef
 
@@ -155,7 +158,8 @@ U / BEG _ > U+0627 U+064F
 a       > U+064E    ; Fathah / Zaber
 i       > U+0650    ; Kasrah / Zear
 u       > U+064F    ; Dammah / Peash
-
+C       > U+0652    ; Jazm
+;-------------------------------------------------------------------------------
 X A     > U+0622        ; Alef with Maddah
 A       > U+0627        ; Alef
 
@@ -274,8 +278,8 @@ Y       > U+0626    ; Yey Chotee with Hamza Above
 E       > U+06D2    ; Yey Baree
 P t     > U+0629    ; Teh Marbuta
 
-C       > U+0652    ; Jazm
-
+;-------------------------------------------------------------------------------
+; Numerics / Symbols
 P P     > U+06D4    ; Arabic Full Stop
 V       > U+060C    ; Arabic Comma
 QSM     > U+061F    ; Arabic Question Mark
@@ -287,5 +291,59 @@ L L     > U+0640    ; Arabic Tatweel
 P / [Digits] _ [Digits] > U+066B ; Arabic Decimal Sperator
 [Digits] > [ArEasternDigits]    ; Digits
 
+;-------------------------------------------------------------------------------
+; Waste Bin
 BAR       >   ;| Remove bar as it is only a seperator
+U+0051    >   ; Q - Unused character
+U+0077    >   ; w - Unused character
+U+0057    >   ; W - Unused character
+U+0049    >   ; I - Unused character
+U+004F    >   ; O - Unused character
+U+0050    >   ; P - Unused character
 
+U+0046    >   ; F - Unused character
+U+004A    >   ; J - Unused character
+U+004C    >   ; L - Unused character
+
+U+0078    >   ; x - Unused character
+U+0058    >   ; X - Unused character
+U+0043    >   ; C - Unused character
+U+0056    >   ; V - Unused character
+U+0042    >   ; B - Unused character
+U+004D    >   ; M - Unused character
+
+;*******************************************************************************
+pass(Unicode)
+b BAR b     < U+0628 U+0628 ; Bey
+p BAR p     < U+067E U+067E ; Pey
+t BAR t     < U+062A U+062A ; Tay
+T BAR T     < U+0679 U+0679 ; TTay
+X s BAR X s < U+062B U+062B ; Say
+j BAR j     < U+062C U+062C ; Jeem
+c BAR c     < U+0686 U+0686 ; Chay
+X h BAR X h < U+062D U+062D ; Heah
+K BAR K     < U+062E U+062E ; Kheah
+d BAR d     < U+062F U+062F ; Dal
+D BAR D     < U+0688 U+0688 ; DDal
+Z BAR Z     < U+0630 U+0630 ; Zaal
+r BAR r     < U+0631 U+0631 ; Ray
+R BAR R     < U+0691 U+0691 ; RRay
+z BAR z     < U+0632 U+0632 ; Zay
+X z BAR X z < U+0698 U+0698 ; Say
+s BAR s     < U+0633 U+0633 ; Seen
+S BAR S     < U+0634 U+0634 ; Sheen
+P s BAR P s < U+0635 U+0635 ; Swad
+P z BAR P z < U+0636 U+0636 ; Zwad
+V t BAR V t < U+0637 U+0637 ; Toay
+V z BAR V z < U+0638 U+0638 ; Zoay
+e BAR e     < U+0639 U+0639 ; Ein
+G BAR G     < U+063A U+063A ; Ghain
+f BAR f     < U+0641 U+0641 ; Fay
+q BAR q     < U+0642 U+0642 ; Qaf
+k BAR k     < U+06A9 U+06A9 ; Kaf with Markaz
+X k BAR X k < U+0643 U+0643 ; Arabic Kaf
+g BAR g     < U+06AF U+06AF ; Gaf
+l BAR l     < U+0644 U+0644 ; Lam
+m BAR m     < U+0645 U+0645 ; Meen
+n BAR n     < U+0646 U+0646 ; Noon
+v BAR v     < U+0648 U+0648 ; Waw
