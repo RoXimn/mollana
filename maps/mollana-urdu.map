@@ -1,6 +1,12 @@
 ;*******************************************************************************
-LHSName  "Mollana-urdu"
-RHSName  "UNICODE"
+EncodingName     "MOLLANA-URDU-2013"
+DescriptiveName  "Mollana - Urdu roman transliteration mapping"
+Version          "1"
+Contact          "DrIYousaf@Gmail.com"
+Copyright        "(c) RoXimn 2013"
+
+LHSName  "Mollana-Roman"
+RHSName  "Mollana-UrduUnicode"
 ;*******************************************************************************
 Define a U+0061  ;a
 Define b U+0062  ;b
@@ -70,6 +76,7 @@ Define BAR U+007C ;|
 
 Define QSM U+003F  ;-  << QUESTION MARK
 Define PCS U+0025  ;-  << PERCENTAGE SIGN
+Define ASTK U+002A  ;-  << ASTERISK SIGN
 
 Define SP U+0020  ;SPACE
 Define CR U+000D  ;Carriage Return
@@ -114,14 +121,9 @@ U+0042 U+0049 U+0053 U+004D U+0049 U+004C U+004C U+0041 U+0048 > U+FDFD ;; 'BISM
 
 U+0050 U+0042 U+0055 U+0048 > U+0610 ;; 'PBUH' ARABIC SIGN SALLALLAHOU ALAYHE WASSALLAM
 U+0041 U+004C U+0059        > U+0611 ;; 'ALY' ARABIC SIGN ALAYHE WASALAM
-U+0052 U+0048 U+004D U+0054 > U+0612
- ;; 'RHMT' ARABIC SIGN ALAYHE WASALAM
-U+0052 U+0041 U+0044 U+0049 > U+0613
-
-;; 'RADI' ARABIC SIGN ALAYHE WASALAM
-U+0054 U+004B U+0048        > U+0614
-
-;; 'TKH' ARABIC SIGN ALAYHE WASALAM
+U+0052 U+0048 U+004D U+0054 > U+0612 ;; 'RHMT' ARABIC SIGN ALAYHE WASALAM
+U+0052 U+0041 U+0044 U+0049 > U+0613 ;; 'RADI' ARABIC SIGN ALAYHE WASALAM
+U+0054 U+004B U+0048        > U+0614 ;; 'TKH' ARABIC SIGN ALAYHE WASALAM
 
 U+004E U+0055 U+004D U+0042 U+0045 U+0052 > U+0600 ;; NUMBER
 U+0053 U+0041 U+004E U+0041 U+0048 > U+0601 ;; SANAH
@@ -131,6 +133,18 @@ U+0053 U+0048 U+0045 U+0052 > U+060E ;; SHER
 U+004D U+0049 U+0053 U+0052 U+0041 > U+060F ;; MISRA
 [Digits] > [ArEasternDigits]    ; Digits
 
+a a > U+0670    ; Superscript Alef
+i i > U+0656    ; Suubscript Alef
+
+a N /   _ END > U+064B          ; Fathatan
+A N /   _ END > U+0627 U+064B   ; Alif + Fathatan
+
+u N /   _ END > U+064C          ; Dammatan
+U N /   _ END > U+0627 U+064C   ; Alif + Dammatan
+
+i N /   _ END > U+064D          ; Kasratan
+I N /   _ END > U+0627 U+064D   ; Alif + Kasratan
+
 a / BEG _ > U+0627
 A / BEG _ > U+0627 U+064E
 i / BEG _ > U+0627
@@ -138,77 +152,140 @@ I / BEG _ > U+0627 U+0650
 u / BEG _ > U+0627
 U / BEG _ > U+0627 U+064F
 
-a N / _ END > U+0648    ; Fathatan
-u N / _ END > U+0649    ; Dammatan
-i N / _ END > U+064A    ; Kasratan
-
 a       > U+064E    ; Fathah / Zaber
 i       > U+0650    ; Kasrah / Zear
 u       > U+064F    ; Dammah / Peash
 
-C A     > U+0622        ; Alef with Maddah
+X A     > U+0622        ; Alef with Maddah
 A       > U+0627        ; Alef
 
-b       > U+0628        ; Bey
 b b     > U+0628 U+0651 ; Bey + Shaddah
+b       > U+0628        ; Bey
 
+p p     > U+067E U+0651 ; Pey + Shaddah
 p       > U+067E        ; Pey
 
-t       > U+062A        ; Tay
 t t     > U+062A U+0651 ; Tay + Shaddah
+t       > U+062A        ; Tay
 
-T       > U+0679    ; TTay
+T T     > U+0679 U+0651 ; TTay + Shaddah
+T       > U+0679        ; TTay
 
-X s     > U+062B    ; Say
+X s X s > U+062B U+0651 ; Say + Shaddah
+X s     > U+062B        ; Say
 
-j       > U+062C    ; Jeem
-c       > U+0686    ; Chay
-X h     > U+062D    ; Heah
-X k     > U+062E    ; Kheah
-d       > U+062F    ; Dal
-D       > U+0688    ; DDal
-Z       > U+0630    ; Zaal
-r       > U+0631    ; Ray
-R       > U+0691    ; RRay
-z       > U+0632    ; Zay
-X z     > U+0698    ; Say
-s       > U+0633    ; Seen
-S       > U+0634    ; Sheen
-P s     > U+0635    ; Swad
-P z     > U+0636    ; Zwad
-V t     > U+0637    ; Toay
-V z     > U+0638    ; Zoay
-e       > U+0639    ; Ein
-G       > U+063A    ; Ghain
-f       > U+0641    ; Fay
-q       > U+0642    ; Qaf
-k       > U+06A9    ; Kaf with Markaz
-K       > U+0643    ; Arabic Kaf
-g       > U+06AF    ; Gaf
-l       > U+0644    ; Lam
-m       > U+0645    ; Meen
-n       > U+0646    ; Noon
+j j     > U+062C U+0651 ; Jeem + Shaddah
+j       > U+062C        ; Jeem
+
+c c     > U+0686 U+0651 ; Chay + Shaddah
+c       > U+0686        ; Chay
+
+X h X h > U+062D U+0651 ; Heah + Shaddah
+X h     > U+062D        ; Heah
+
+K K     > U+062E U+0651 ; Kheah + Shaddah
+K       > U+062E        ; Kheah
+
+d d     > U+062F U+0651 ; Dal + Shaddah
+d       > U+062F        ; Dal
+
+D D     > U+0688 U+0651 ; DDal + Shaddah
+D       > U+0688        ; DDal
+
+Z Z     > U+0630 U+0651 ; Zaal + Shaddah
+Z       > U+0630        ; Zaal
+
+r r     > U+0631 U+0651 ; Ray + Shaddah
+r       > U+0631        ; Ray
+
+R R     > U+0691 U+0651 ; RRay + Shaddah
+R       > U+0691        ; RRay
+
+z z     > U+0632 U+0651 ; Zay + Shaddah
+z       > U+0632        ; Zay
+
+X z X z > U+0698 U+0651 ; Say + Shaddah
+X z     > U+0698        ; Say
+
+s s     > U+0633 U+0651 ; Seen + Shaddah
+s       > U+0633        ; Seen
+
+S S     > U+0634 U+0651 ; Sheen + Shaddah
+S       > U+0634        ; Sheen
+
+P s P s > U+0635 U+0651 ; Swad + Shaddah
+P s     > U+0635        ; Swad
+
+P z P z > U+0636 U+0651 ; Zwad + Shaddah
+P z     > U+0636        ; Zwad
+
+V t V t > U+0637 U+0651 ; Toay + Shaddah
+V t     > U+0637        ; Toay
+
+V z V z > U+0638 U+0651 ; Zoay + Shaddah
+V z     > U+0638        ; Zoay
+
+e e     > U+0639 U+0651 ; Ein + Shaddah
+e       > U+0639        ; Ein
+
+G G     > U+063A U+0651 ; Ghain + Shaddah
+G       > U+063A        ; Ghain
+
+f f     > U+0641 U+0651 ; Fay + Shaddah
+f       > U+0641        ; Fay
+
+q q     > U+0642 U+0651 ; Qaf + Shaddah
+q       > U+0642        ; Qaf
+
+k k     > U+06A9 U+0651 ; Kaf with Markaz + Shaddah
+k       > U+06A9        ; Kaf with Markaz
+
+X k X k > U+0643 U+0651 ; Arabic Kaf + Shaddah
+X k     > U+0643        ; Arabic Kaf
+
+g g     > U+06AF U+0651 ; Gaf + Shaddah
+g       > U+06AF        ; Gaf
+
+l l     > U+0644 U+0651     ; Lam + Shaddah
+l       > U+0644            ; Lam
+
+m m     > U+0645 U+0651 ; Meen + Shaddah
+m       > U+0645        ; Meen
+
+n n     > U+0646 U+0651 ; Noon + Shaddah
+n       > U+0646        ; Noon
+
 N       > U+06BA    ; Noon Ghunna
-v       > U+0648    ; Waw
-v v     > U+0648 U+0651   ; Waw + Shaddah
-o       > U+0648    ; -do-
-U       > U+0648    ; -do-
-H       > U+06C1    ; Heh Goal
-h       > U+06BE    ; Heh Do Cheshmee
-M       > U+0621    ; Hamza
-O       > U+0654    ; Hamza as Mark
+
+v v     > U+0648 U+0651     ; Waw + Shaddah
+v       > U+0648            ; Waw
+o       > U+0648            ; -do-
+U       > U+0648            ; -do-
+
+h       > U+06C1    ; Heh Goal
+H       > U+06BE    ; Heh Do Cheshmee
+
+
+M / BAR _  > U+0621    ; Isolated Hamza
+M          > U+0654    ; Hamza as Mark
+
 y       > U+06CC    ; Yey Chotee without Dots
 Y       > U+0626    ; Yey Chotee with Hamza Above
 E       > U+06D2    ; Yey Baree
 P t     > U+0629    ; Teh Marbuta
 
 C       > U+0652    ; Jazm
+
 P P     > U+06D4    ; Arabic Full Stop
 V       > U+060C    ; Arabic Comma
 QSM     > U+061F    ; Arabic Question Mark
 SC      > U+061B    ; Arabic Semicolon
 PCS     > U+066A    ; Arabic Percentage Sign
+ASTK    > U+066D    ; Arabic Star
 L L     > U+0640    ; Arabic Tatweel
+
+P / [Digits] _ [Digits] > U+066B ; Arabic Decimal Sperator
+[Digits] > [ArEasternDigits]    ; Digits
 
 BAR       >   ;| Remove bar as it is only a seperator
 
