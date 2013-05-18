@@ -36,4 +36,7 @@ CONFIG(debug, debug|release) {
 
 OTHER_FILES += \
     mollana.rc \
-    maps/mollana-urdu.map
+    maps/mollana-urdu.map \
+    doc/guide.htm \
+    doc/css/style.css \
+    doc/css/normalize.css
