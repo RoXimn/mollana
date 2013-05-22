@@ -1,12 +1,14 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
+
 <html lang="en">
+
 <head>
-	<meta charset="utf-8">
-	<title>mollana - the simple guide!</title>
-    <link href='css/cm.css' rel='stylesheet' type='text/css'>
+    <meta charset="utf-8">
+    <title>mollana - the simple guide!</title>
     <link rel="stylesheet" href="css/normalize.css" type="text/css">
-	<link rel="stylesheet" href="css/style.css" type="text/css">
+    <link rel="stylesheet" href="css/style.css" type="text/css">
 </head>
+
 <body>
     <!-- ********************************************************************-->
     <!-- title **************************************************************-->
@@ -42,14 +44,14 @@
     <div class="scrollblock block-setup">
         <h2>setup</h2>
         <p>
-            <a href="http://code.google.com/p/msysgit/downloads/list?can=3">Download and install “mollana” for Windows</a>
+            <a href="http://sourceforge.net/projects/mollana/files/v0.1a/mollana0.1a-win32-setup.exe/download">Download and install “mollana” for Windows</a>
         </p>
     </div>
 
     <!-- ********************************************************************-->
     <!-- interface **********************************************************-->
     <a name="interface"></a>
-    <div class="scrollblock block-interface">
+      <div class="scrollblock block-interface">
         <h2>interface</h2>
         <p>
             consists of <br />
@@ -60,7 +62,7 @@
     </div>
 
     <!-- ********************************************************************-->
-    <!-- setup **************************************************************-->
+    <!-- workflow ***********************************************************-->
     <a name="workflow"></a>
     <div class="scrollblock block-workflow">
         <h2>how it works</h2>
@@ -76,7 +78,7 @@
     </div>
 
     <!-- ********************************************************************-->
-    <!-- setup **************************************************************-->
+    <!-- justification ******************************************************-->
     <a name="justification"></a>
     <div class="scrollblock block-justification">
         <h2>why bother</h2>
@@ -90,19 +92,29 @@
     </div>
 
     <!-- ********************************************************************-->
-    <!-- setup **************************************************************-->
+    <!-- urduscript *********************************************************-->
     <a name="urduscript"></a>
     <div class="scrollblock block-urduscript">
         <h2>urdu script mapping</h2>
         <p>
-            the mapping was mainly designed with reference to the book <br/>
+            the mapping rules and design was mainly designed and insspired with reference to the book <br/>
             <a href="http://amzn.com/B002Q3W3B8">Urdu For All - An Introduction to Urdu Script</a><br/>
             by Roop Krishen Bhat
+<br/>
+            <br/>
+            The following lessons <br/>
+            will guide will you through the mapping rules <br/>
+            between <br/>
+            the roman characters <br/>
+            and <br/>
+            the corresponding Unicode Urdu characters <br/>
+            with progressive approach <br/>
+            every lesson building on the previous lesson
         </p>
     </div>
 
     <!-- ********************************************************************-->
-    <!-- setup **************************************************************-->
+    <!-- lesson01 ***********************************************************-->
     <a name="lesson01"></a>
     <div class="scrollblock block-lesson01">
         <h2>lesson 1</h2>
@@ -116,7 +128,7 @@
             represented by <b>'A</b> (Apostrophe + Capital A)<br />
          </p>
          <img src="img/lesson01.png" alt="" />
-        <h3>“Re” Group</h2>
+        <h3>“Re” Group</h3>
         <p>
             <b>re</b> &ldquo;<img src="img/re.png" alt="re" />&rdquo; is represented by <b>r</b> (Small r)<br />
             <b>rre</b> &ldquo;<img src="img/rre.png" alt="rre" />&rdquo; is represented by <b>R</b> (Capital R)<br />
@@ -127,11 +139,11 @@
     </div>
 
     <!-- ********************************************************************-->
-    <!-- setup **************************************************************-->
+    <!-- lesson02 ***********************************************************-->
     <a name="lesson02"></a>
     <div class="scrollblock block-lesson02">
         <h2>lesson 2</h2>
-        <h3>“Dal” Group</h2>
+        <h3>“Dal” Group</h3>
         <p>
             <b>dal</b> &ldquo;<img src="img/dal.png" alt="dal" />&rdquo; is represented by <b>d</b> (Small d)<br />
             <b>ddal</b> &ldquo;<img src="img/ddal.png" alt="ddal" />&rdquo; is represented by <b>D</b> (Capital D)<br />
@@ -142,18 +154,13 @@
          <img src="img/lesson02.png" alt="" />
         <p>
             &ldquo;<img src="img/wow.png" alt="wow" />&rdquo; is used in different contexts to produce different sounds <br/>
-            <ol>
-                <li>as semi-vowel with sound of <b>v</b>  </li>
-                <li>with sound of <b>short o</b> &ldquo;<img src="img/wow-majhool.png" alt="wow" />&rdquo; </li>
-                <li>with sound of <b>long u</b> &ldquo;<img src="img/wow-maroof.png" alt="wow" />&rdquo; </li>
-            </ol>
             All three &ldquo;<img src="img/wow.png" alt="wow" />&rdquo; are phonetically different but <br/>
             semantically same without any difference in encoding
          </p>
     </div>
 
     <!-- ********************************************************************-->
-    <!-- setup **************************************************************-->
+    <!-- lesson03 ***********************************************************-->
     <a name="lesson03"></a>
     <div class="scrollblock block-lesson03">
         <h2>lesson 3</h2>
@@ -165,59 +172,214 @@
             <br />
         </p>
         <img src="img/lesson03.png" alt="" />
+        <p>
+            These three <b>haraqat</b> &ldquo;<img src="img/haraqat.png" alt="haraqat" />&rdquo; in initial position<br />
+            are written with the help of <b>alif</b> &ldquo;<img src="img/alif.png" alt="alif" />&rdquo; in Urdu<br />
+            In Mollana, the characters <b>a</b>, <b>i</b>, <b>u</b> in initial position <br/>
+            are translated to <b>alif</b> &ldquo;<img src="img/alif.png" alt="alif"/>&rdquo; only<br/>
+            If in initial position <b>alif</b> with &ldquo;<img src="img/haraqat.png" alt="haraqat" />&rdquo; is needed<br/>
+            then <b>capitalize</b> it; Use <b>A</b>, <b>I</b>, <b>U</b>
+        </p>
+        
         <img src="img/lesson03-initial.png" alt="" />
+        <p>
+            <b><i>Jazm</i></b> / <i>Sukkun</i> &ldquo;<img src="img/jazm.png" alt="jazm" />&rdquo; is represented by <b>^</b> (Caret Symbol)<br />
+            It represents absence of a vowel over a consonant
+        </p>
+        
+        <img src="img/lesson03-jazm.png" alt="" />
     </div>
 
     <!-- ********************************************************************-->
-    <!-- setup **************************************************************-->
-    <a name="tagging"></a>
-    <div class="scrollblock block-tagging">
-        <h2>tagging</h2>
+    <!-- lesson 4 ***********************************************************-->
+    <a name="lesson04"></a>
+    <div class="scrollblock block-lesson04">
+        <h2>lesson 4</h2>
+        <h3>“Jeem” Group</h3>
         <p>
-            it's recommended to create tags for software releases. this is a known concept, which also exists in SVN. You can create a new tag named <i>1.0.0</i> by executing<br />
-            <code>git tag 1.0.0 1b2e1d63ff</code><br />
-            the <i>1b2e1d63ff</i> stands for the first 10 characters of the commit id you want to reference with your tag. You can get the commit id with <br />
-            <code>git log</code><br />
-            you can also use fewer characters of the commit id, it just has to be unique.
+            <b>jeem</b> &ldquo;<img src="img/jeem.png" alt="jeem" />&rdquo; is represented by <b>j</b> (Small j)<br />
+            <b>chay</b> &ldquo;<img src="img/chay.png" alt="chay" />&rdquo; is represented by <b>c</b> (Small c)<br />
+            <b>heah</b> &ldquo;<img src="img/heah.png" alt="heah" />&rdquo; is represented by <b>'h</b> (Apostrophe + Small h)<br />
+            <b>kheah</b> &ldquo;<img src="img/kheah.png" alt="kheah" />&rdquo; is represented by <b>K</b> (Capital K)<br />
+         </p>
+         <img src="img/lesson04.png" alt="lesson04" />
+    </div>
+
+    <!-- ********************************************************************-->
+    <!-- lesson05 ***********************************************************-->
+    <a name=" lesson05 "></a>
+    <div class="scrollblock block-lesson05">
+        <h2>lesson 5</h2>
+        <h3>“Seen” Group</h3>
+        <p>
+            <b>seen</b> &ldquo;<img src="img/seen.png" alt="seen" />&rdquo; is represented by <b>s</b> (Small s)<br />
+            <b>sheen</b> &ldquo;<img src="img/sheen.png" alt="sheen" />&rdquo; is represented by <b>S</b> (Capital S)<br />
+         </p>
+         <img src="img/lesson05.png" alt="lesson05" />
+        <h3><b>tashdeed</b> &ldquo;<img src="img/tashdeed.png" alt="tashdeed" />&rdquo;</h3>
+        <p>
+            Signifies letters which are pronounced twice<br />
+            <img src="img/tashdeed-sccA.png" alt="tashdeed-sccA" /><br />
+            It is represented by doubling the base character
+         </p>
+
+         <img src="img/lesson05-tashdeed.png" alt="lesson05-tashdeed" />
+    </div>
+
+    <!-- ********************************************************************-->
+    <!-- lesson06 ***********************************************************-->
+    <a name=" lesson06 "></a>
+    <div class="scrollblock block-lesson06">
+        <h2> lesson 6 </h2>
+        <h3>“Swad” Group</h3>
+        <p>
+            <b>swad</b> &ldquo;<img src="img/swad.png" alt="seen" />&rdquo; is represented by <b>.s</b> (Dot + Small s)<br />
+            <b>zwad</b> &ldquo;<img src="img/zwad.png" alt="sheen" />&rdquo; is represented by <b>.z</b> (Dot + Small z)<br />
+         </p>
+         <img src="img/lesson06.png" alt="lesson06" />
+    </div>
+
+    <!-- ********************************************************************-->
+    <!-- lesson07 ***********************************************************-->
+    <a name="lesson07"></a>
+      <div class="scrollblock block-lesson07">
+        <h2>lesson 7</h2>
+        <h3>“Fay” Group</h3>
+        <p>
+            <b>fay</b> &ldquo;<img src="img/fay.png" alt="fay" />&rdquo; is represented by <b>f</b> (Small f)<br />
+            <b>qaf</b> &ldquo;<img src="img/qaf.png" alt="qaf" />&rdquo; is represented by <b>q</b> (Small q)<br />
+         </p>
+         <img src="img/lesson07.png" alt="lesson07" />
+    </div>
+
+    <!-- ********************************************************************-->
+    <!-- lesson08 ***********************************************************-->
+    <a name="lesson08"></a>
+    <div class="scrollblock block-lesson08">
+        <h2>lesson 8</h2>
+        <h3>“Lam” and “Meem”</h3>
+        <p>
+            <b>lam</b> &ldquo;<img src="img/lam.png" alt="lam" />&rdquo; is represented by <b>l</b> (Small l)<br />
+            <b>meem</b> &ldquo;<img src="img/meem.png" alt="meem" />&rdquo; is represented by <b>m</b> (Small m)<br />
+         </p>
+         <img src="img/lesson08.png" alt="lesson08" />
+    </div>
+
+    <!-- ********************************************************************-->
+    <!-- lesson09 ***********************************************************-->
+    <a name="lesson09"></a>
+    <div class="scrollblock block-lesson09">
+        <h2>lesson 9</h2>
+        <h3>“Kaf” Group</h3>
+        <p>
+            <b>kaf</b> &ldquo;<img src="img/kaf.png" alt="kaf" />&rdquo; is represented by <b>k</b> (Small k)<br />
+            <b>gaf</b> &ldquo;<img src="img/gaf.png" alt="gaf" />&rdquo; is represented by <b>g</b> (Small g)<br />
+         </p>
+         <img src="img/lesson09.png" alt="lesson09" />
+    </div>
+
+    <!-- ********************************************************************-->
+    <!-- lesson10 ***********************************************************-->
+    <a name="lesson10"></a>
+    <div class="scrollblock block-lesson10">
+        <h2>lesson 10</h2>
+        <p>
         </p>
     </div>
 
     <!-- ********************************************************************-->
-    <!-- setup **************************************************************-->
-    <a name="checkout-replace"></a>
-    <div class="scrollblock block-checkout-replace">
-        <h2>replace local changes</h2>
+    <!-- lesson11 ***********************************************************-->
+    <a name="lesson11"></a>
+    <div class="scrollblock block-lesson11">
+        <h2>lesson 11</h2>
         <p>
-            In case you did something wrong (which for sure never happens ;) you can replace local changes using the command<br />
-            <code>git checkout -- &lt;filename&gt;</code><br />
-            this replaces the changes in your working tree with the last content in HEAD. Changes already added to the index, as well as new files, will be kept.
         </p>
+
+    </div>
+
+    <!-- ********************************************************************-->
+    <!-- lesson12 ***********************************************************-->
+    <a name="lesson12"></a>
+    <div class="scrollblock block-lesson12">
+        <h2>lesson 12</h2>
         <p>
-            If you instead want to drop all your local changes and commits, fetch the latest history from the server and point your local master branch at it like this<br />
-            <code>git fetch origin</code><br />
-            <code>git reset --hard origin/master</code>
         </p>
     </div>
 
     <!-- ********************************************************************-->
-    <!-- setup **************************************************************-->
-    <a name="hints"></a>
-    <div class="scrollblock block-hints">
-        <h2>useful hints</h2>
+    <!-- lesson13 ***********************************************************-->
+    <a name="lesson13"></a>
+    <div class="scrollblock block-lesson13">
+        <h2>lesson 13</h2>
         <p>
-            built-in git GUI<br />
-            <code>gitk</code><br />
-            use colorful git output<br />
-            <code>git config color.ui true</code><br />
-            show log on just one line per commit<br />
-            <code>git config format.pretty oneline</code><br />
-            use interactive adding<br />
-            <code>git add -i</code>
         </p>
     </div>
 
     <!-- ********************************************************************-->
-    <!-- setup **************************************************************-->
+    <!-- lesson 14 ***********************************************************-->
+    <a name="lesson14"></a>
+    <div class="scrollblock block-lesson14">
+        <h2>lesson 14</h2>
+        <p>
+        </p>
+    </div>
+
+    <!-- ********************************************************************-->
+    <!-- lesson15 ***********************************************************-->
+    <a name=" lesson15 "></a>
+    <div class="scrollblock block-lesson15">
+        <h2>lesson 15</h2>
+        <p>
+        </p>
+    </div>
+
+    <!-- ********************************************************************-->
+    <!-- lesson16 ***********************************************************-->
+    <a name=" lesson16 "></a>
+    <div class="scrollblock block-lesson116">
+        <h2> lesson 16 </h2>
+        <p>
+        </p>
+    </div>
+
+    <!-- ********************************************************************-->
+    <!-- lesson17 ***********************************************************-->
+    <a name="lesson17"></a>
+      <div class="scrollblock block-lesson17">
+        <h2>lesson 17</h2>
+        <p>
+        </p>
+    </div>
+
+    <!-- ********************************************************************-->
+    <!-- lesson18 ***********************************************************-->
+    <a name="lesson18"></a>
+    <div class="scrollblock block-lesson18">
+        <h2>lesson 18</h2>
+        <p>
+        </p>
+    </div>
+
+    <!-- ********************************************************************-->
+    <!-- lesson19 ***********************************************************-->
+    <a name="lesson19"></a>
+    <div class="scrollblock block-lesson19">
+        <h2>lesson 19</h2>
+        <p>
+        </p>
+    </div>
+
+    <!-- ********************************************************************-->
+    <!-- lesson20 ***********************************************************-->
+    <a name="lesson20"></a>
+    <div class="scrollblock block-lesson20">
+        <h2>lesson 20</h2>
+        <p>
+        </p>
+    </div>
+
+    <!-- ********************************************************************-->
+    <!-- resources **********************************************************-->
     <a name="resources"></a>
     <div class="scrollblock block-resources">
         <h2>links & resources</h2>
@@ -242,11 +404,6 @@
             </ul>
         </p>
     </div>
-
-    <!-- ********************************************************************-->
-    <!-- setup **************************************************************-->
-    <a href="http://www.git-tower.com/?source=rd" onClick="recordOutboundLink(this, 'Outbound Links', 'git-tower.com');return false;" class="tower"></a>
-    <a href="files/git_cheat_sheet.pdf" onClick="recordOutboundLink(this, 'Cheat Sheet', 'git-guide');return false;" class="cheatsheet"></a>
 
 </body>
 </html>
