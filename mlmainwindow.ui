@@ -130,7 +130,8 @@
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="actionHelp"/>
+    <addaction name="actionGettingStarted"/>
+    <addaction name="actionCheatSheet"/>
     <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuFile"/>
@@ -434,13 +435,13 @@
   <action name="actionAbout">
    <property name="icon">
     <iconset resource="mollana.qrc">
-     <normaloff>:/icons/png32/help.png</normaloff>:/icons/png32/help.png</iconset>
+     <normaloff>:/icons/png32/help_balloon.png</normaloff>:/icons/png32/help_balloon.png</iconset>
    </property>
    <property name="text">
     <string>About</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+F1</string>
+    <string>F1</string>
    </property>
   </action>
   <action name="actionEditorFont">
@@ -470,16 +471,28 @@
     <string>F8</string>
    </property>
   </action>
-  <action name="actionHelp">
+  <action name="actionGettingStarted">
    <property name="icon">
     <iconset resource="mollana.qrc">
-     <normaloff>:/icons/png32/help_balloon.png</normaloff>:/icons/png32/help_balloon.png</iconset>
+     <normaloff>:/icons/png32/help.png</normaloff>:/icons/png32/help.png</iconset>
    </property>
    <property name="text">
-    <string>Help</string>
+    <string>Getting Started</string>
    </property>
    <property name="shortcut">
-    <string>F1</string>
+    <string>Shift+F1</string>
+   </property>
+  </action>
+  <action name="actionCheatSheet">
+   <property name="icon">
+    <iconset resource="mollana.qrc">
+     <normaloff>:/icons/png32/office_folders.png</normaloff>:/icons/png32/office_folders.png</iconset>
+   </property>
+   <property name="text">
+    <string>Cheat Sheet</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F1</string>
    </property>
   </action>
  </widget>

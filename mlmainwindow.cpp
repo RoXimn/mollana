@@ -11,6 +11,7 @@
 #include <QFontDialog>
 #include <QMessageBox>
 #include <QTextOption>
+#include <QDesktopServices>
 
 //*****************************************************************************
 mlMainWindow::mlMainWindow(QWidget *parent) :
@@ -18,6 +19,8 @@ mlMainWindow::mlMainWindow(QWidget *parent) :
     ui(new Ui::mlMainWindow),
     uniConverter(0) {
 
+    //-------------------------------------------------------------------------
+    // UI
     ui->setupUi(this);
 
     //-------------------------------------------------------------------------
@@ -84,6 +87,12 @@ mlMainWindow::mlMainWindow(QWidget *parent) :
     connect(ui->actionUnicodeViewFont,
                                 SIGNAL(triggered()),
             this,               SLOT(unicodeFontChanged()) );
+    connect(ui->actionGettingStarted,
+                                SIGNAL(triggered()),
+            this,               SLOT(showGettingStarted()) );
+    connect(ui->actionCheatSheet,
+                                SIGNAL(triggered()),
+            this,               SLOT(showCheatSheet()) );
     connect(ui->actionAbout,    SIGNAL(triggered()),
             this,               SLOT(about()) );
 
@@ -200,6 +209,26 @@ bool mlMainWindow::saveAs() {
         return false;
 
     return saveFile(fileName);
+}
+
+//*****************************************************************************
+void mlMainWindow::showGettingStarted() {
+    //-------------------------------------------------------------------------
+    if( !QDesktopServices::openUrl(
+                "file:///" + qApp->applicationDirPath() + "/doc/guide.htm" ) ){
+        QMessageBox::information( this, sAPPNAME,
+                                  tr("Unable to open the Getting Started guide.") );
+    }
+}
+
+//*****************************************************************************
+void mlMainWindow::showCheatSheet() {
+    //-------------------------------------------------------------------------
+    if( !QDesktopServices::openUrl(
+                "file:///" + qApp->applicationDirPath() + "/doc/mollana-cheatsheet.pdf" ) ) {
+        QMessageBox::information( this, sAPPNAME,
+                                  tr("Unable to open the cheat sheet.") );
+    }
 }
 
 //*****************************************************************************

@@ -37,6 +37,8 @@ class mlMainWindow : public QMainWindow {
     void open();
     bool save();
     bool saveAs();
+    void showGettingStarted();
+    void showCheatSheet();
     void about();
     void editorFontChanged();
     void unicodeFontChanged();
