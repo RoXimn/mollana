@@ -9,6 +9,7 @@
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 
 !define QT_DIRECTORY "E:\Qt-MSVC\5.0.2\msvc2010"
+;!define QT_DIRECTORY "E:\Qt\5.0.2\msvc2010"
 
 ; MUI 1.67 compatible ------
 !include "MUI.nsh"
@@ -63,16 +64,25 @@ Section "MainSection" SEC01
   File "${QT_DIRECTORY}\bin\icudt49.dll"
   File "${QT_DIRECTORY}\bin\D3DCompiler_43.dll"
 
-  CreateDirectory "$SMPROGRAMS\Mollana"
-  
   SetOutPath "$INSTDIR\platforms"
   File "${QT_DIRECTORY}\plugins\platforms\qwindows.dll"
   File "${QT_DIRECTORY}\plugins\platforms\qminimal.dll"
   
+  SetOutPath "$INSTDIR\doc"
+  File "..\doc\guide.htm"
+  File "..\doc\mollana-cheatsheet.pdf"
+
+  SetOutPath "$INSTDIR\doc\css"
+  File "..\doc\css\*.css"
+   
+  SetOutPath "$INSTDIR\doc\img"
+  File "..\doc\img\*.png"
+
   StrCpy $FONT_DIR $FONTS
   !insertmacro InstallTTF '..\fonts\DroidNaskh-Regular.ttf'
   SendMessage ${HWND_BROADCAST} ${WM_FONTCHANGE} 0 0 /TIMEOUT=5000
   
+  CreateDirectory "$SMPROGRAMS\Mollana"
   CreateShortCut "$SMPROGRAMS\Mollana\Mollana.lnk" "$INSTDIR\mollana.exe"
   CreateShortCut "$DESKTOP\Mollana.lnk" "$INSTDIR\mollana.exe"
 SectionEnd
@@ -106,7 +116,15 @@ Section Uninstall
   Delete "$INSTDIR\platforms\qwindows.dll"
   Delete "$INSTDIR\platforms\qminimal.dll"
 
-  RMDir "$SMPROGRAMS\Mollana\platforms"
+  RMDir "$INSTDIR\Mollana\platforms"
+  
+  Delete "$INSTDIR\doc\guide.htm"
+  Delete "$INSTDIR\doc\css\*.css"
+  Delete "$INSTDIR\doc\img\*.png"
+  
+  RMDir "$INSTDIR\Mollana\doc\css"
+  RMDir "$INSTDIR\Mollana\doc\img"
+  RMDir "$INSTDIR\Mollana\doc"
   
   Delete "$INSTDIR\uninst.exe"
   Delete "$INSTDIR\mollana.exe"
@@ -123,8 +141,8 @@ Section Uninstall
 
   
   Delete "$SMPROGRAMS\Mollana\Uninstall.lnk"
-  Delete "$DESKTOP\Mollana.lnk"
   Delete "$SMPROGRAMS\Mollana\Mollana.lnk"
+  Delete "$DESKTOP\Mollana.lnk"
 
   RMDir "$SMPROGRAMS\Mollana"
   RMDir "$INSTDIR"
