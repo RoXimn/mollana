@@ -118,6 +118,7 @@ Section Uninstall
 
   RMDir "$INSTDIR\Mollana\platforms"
   
+  Delete "$INSTDIR\doc\mollana-cheatsheet.pdf"
   Delete "$INSTDIR\doc\guide.htm"
   Delete "$INSTDIR\doc\css\*.css"
   Delete "$INSTDIR\doc\img\*.png"
@@ -139,7 +140,6 @@ Section Uninstall
   Delete "$INSTDIR\icudt49.dll"
   Delete "$INSTDIR\D3DCompiler_43.dll"
 
-  
   Delete "$SMPROGRAMS\Mollana\Uninstall.lnk"
   Delete "$SMPROGRAMS\Mollana\Mollana.lnk"
   Delete "$DESKTOP\Mollana.lnk"
