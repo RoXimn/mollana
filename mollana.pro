@@ -39,4 +39,5 @@ OTHER_FILES += \
     maps/mollana-urdu.map \
     doc/guide.htm \
     doc/css/style.css \
-    doc/css/normalize.css
+    doc/css/normalize.css \
+    doc/mollana-cheatsheet.tex
