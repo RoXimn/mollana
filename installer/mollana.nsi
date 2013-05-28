@@ -42,6 +42,22 @@
 
 ; MUI end ------
 
+;-------------------------------
+; Test if Visual C++ Redistributable x86 2010 SP1 installed
+Function CheckVCRedist
+   Push $R0
+   ClearErrors
+   ReadRegStr $R0 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{F0C3E5D1-1ADE-321E-8167-68EF0DE699A5}" "Version"
+
+   ; if VC++ 2010 x86 redist SP1 not installed, install it
+   IfErrors 0 VSRedistInstalled
+   ExecWait '"$INSTDIR\vcredist\vcredist_sp1_x86.exe /q /norestart"'
+
+VSRedistInstalled:
+   Exch $R0
+FunctionEnd
+   
+;-------------------------------
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "mollana0.1a-win32-setup.exe"
 InstallDir "$PROGRAMFILES\Mollana"
@@ -77,6 +93,11 @@ Section "MainSection" SEC01
    
   SetOutPath "$INSTDIR\doc\img"
   File "..\doc\img\*.png"
+  
+  SetOutPath "$INSTDIR\vcredist"
+  File "..\vcredist\vcredist_sp1_x86.exe"
+
+  Call "CheckVCRedist"
 
   StrCpy $FONT_DIR $FONTS
   !insertmacro InstallTTF '..\fonts\DroidNaskh-Regular.ttf'
@@ -115,17 +136,16 @@ FunctionEnd
 Section Uninstall
   Delete "$INSTDIR\platforms\qwindows.dll"
   Delete "$INSTDIR\platforms\qminimal.dll"
-
-  RMDir "$INSTDIR\Mollana\platforms"
+  RMDir "$INSTDIR\platforms"
   
   Delete "$INSTDIR\doc\mollana-cheatsheet.pdf"
   Delete "$INSTDIR\doc\guide.htm"
   Delete "$INSTDIR\doc\css\*.css"
   Delete "$INSTDIR\doc\img\*.png"
   
-  RMDir "$INSTDIR\Mollana\doc\css"
-  RMDir "$INSTDIR\Mollana\doc\img"
-  RMDir "$INSTDIR\Mollana\doc"
+  RMDir "$INSTDIR\doc\css"
+  RMDir "$INSTDIR\doc\img"
+  RMDir "$INSTDIR\doc"
   
   Delete "$INSTDIR\uninst.exe"
   Delete "$INSTDIR\mollana.exe"
@@ -140,12 +160,17 @@ Section Uninstall
   Delete "$INSTDIR\icudt49.dll"
   Delete "$INSTDIR\D3DCompiler_43.dll"
 
-  Delete "$SMPROGRAMS\Mollana\Uninstall.lnk"
-  Delete "$SMPROGRAMS\Mollana\Mollana.lnk"
+  ExecWait '"$INSTDIR\vcredist\vcredist_sp1_x86.exe /uninstall /q /norestart"'
+  Delete "$INSTDIR\vcredist\vcredist_sp1_x86.exe"
+  RMDir "$INSTDIR\vcredist"
+
+  RMDir "$INSTDIR"
+
   Delete "$DESKTOP\Mollana.lnk"
 
+  Delete "$SMPROGRAMS\Mollana\Uninstall.lnk"
+  Delete "$SMPROGRAMS\Mollana\Mollana.lnk"
   RMDir "$SMPROGRAMS\Mollana"
-  RMDir "$INSTDIR"
 
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
   DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
