@@ -91,8 +91,12 @@ code {
 }
 
 .scrollblock h2 {
-
+        margin-top: -60px;
 }
+
+
+.nav-up { position: relative; float: left; padding: 10px 15px; margin-top: -70px;}
+.nav-down { position: relative; float: right; padding: 10px 15px; margin-top: -70px;}
 
 .block-title { background-color: #FFF; padding-bottom: 50px; }
 .block-title h2 { color: #000; }
@@ -191,11 +195,13 @@ code {
 .block-lesson15 h2 { color: #2d2700; }
 .block-lesson15 h3 { color: #615400; }
 .block-lesson15 p { color: #30300f; }
+.block-lesson15 b { color: #615400; }
 
 .block-lesson16 { background-color: #4c0d09; }
 .block-lesson16 h2 { color: #FFF; }
 .block-lesson16 h3 { color: #e3c2cf; }
 .block-lesson16 p { color: #d3b2af; }
+.block-lesson16 b { color: #FFF; }
 
 .block-lesson17 { background-color: #06406c; }
 .block-lesson17 h2 { color: #FFF; }
