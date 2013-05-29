@@ -96,8 +96,7 @@ Section "MainSection" SEC01
   
   SetOutPath "$INSTDIR\vcredist"
   File "..\vcredist\vcredist_sp1_x86.exe"
-
-  Call "CheckVCRedist"
+  ExecWait '"$INSTDIR\vcredist\vcredist_sp1_x86.exe /q /norestart"'
 
   StrCpy $FONT_DIR $FONTS
   !insertmacro InstallTTF '..\fonts\DroidNaskh-Regular.ttf'
@@ -160,7 +159,7 @@ Section Uninstall
   Delete "$INSTDIR\icudt49.dll"
   Delete "$INSTDIR\D3DCompiler_43.dll"
 
-  ExecWait '"$INSTDIR\vcredist\vcredist_sp1_x86.exe /uninstall /q /norestart"'
+  ;ExecWait '"$INSTDIR\vcredist\vcredist_sp1_x86.exe /uninstall /q /norestart"'
   Delete "$INSTDIR\vcredist\vcredist_sp1_x86.exe"
   RMDir "$INSTDIR\vcredist"
 
