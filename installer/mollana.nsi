@@ -43,21 +43,6 @@
 ; MUI end ------
 
 ;-------------------------------
-; Test if Visual C++ Redistributable x86 2010 SP1 installed
-Function CheckVCRedist
-   Push $R0
-   ClearErrors
-   ReadRegStr $R0 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{F0C3E5D1-1ADE-321E-8167-68EF0DE699A5}" "Version"
-
-   ; if VC++ 2010 x86 redist SP1 not installed, install it
-   IfErrors 0 VSRedistInstalled
-   ExecWait '"$INSTDIR\vcredist\vcredist_sp1_x86.exe /q /norestart"'
-
-VSRedistInstalled:
-   Exch $R0
-FunctionEnd
-   
-;-------------------------------
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "mollana0.1a-win32-setup.exe"
 InstallDir "$PROGRAMFILES\Mollana"
@@ -96,7 +81,7 @@ Section "MainSection" SEC01
   
   SetOutPath "$INSTDIR\vcredist"
   File "..\vcredist\vcredist_sp1_x86.exe"
-  ExecWait '"$INSTDIR\vcredist\vcredist_sp1_x86.exe /q /norestart"'
+  ExecWait '"$INSTDIR\vcredist\vcredist_sp1_x86.exe" /q /norestart'
 
   StrCpy $FONT_DIR $FONTS
   !insertmacro InstallTTF '..\fonts\DroidNaskh-Regular.ttf'
