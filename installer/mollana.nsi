@@ -79,13 +79,13 @@ Section "MainSection" SEC01
   SetOutPath "$INSTDIR\doc\img"
   File "..\doc\img\*.png"
   
-  SetOutPath "$INSTDIR\vcredist"
-  File "..\vcredist\vcredist_sp1_x86.exe"
-  ExecWait '"$INSTDIR\vcredist\vcredist_sp1_x86.exe" /q /norestart'
-
   StrCpy $FONT_DIR $FONTS
   !insertmacro InstallTTF '..\fonts\DroidNaskh-Regular.ttf'
   SendMessage ${HWND_BROADCAST} ${WM_FONTCHANGE} 0 0 /TIMEOUT=5000
+
+  SetOutPath "$INSTDIR\vcredist"
+  File "..\vcredist\vcredist_sp1_x86.exe"
+  ExecWait '"$INSTDIR\vcredist\vcredist_sp1_x86.exe" /q /norestart'
   
   CreateDirectory "$SMPROGRAMS\Mollana"
   CreateShortCut "$SMPROGRAMS\Mollana\Mollana.lnk" "$INSTDIR\mollana.exe"
