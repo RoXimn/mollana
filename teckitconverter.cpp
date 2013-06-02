@@ -98,7 +98,7 @@ quint32 TECkitConverter::getTargetFlags() {
 // Convert the
 QString TECkitConverter::convert( const QString& intxt ) {
 
-    const int BUFFERSZ = 16384;
+    const int BUFFERSZ = 5242880;
 
     /*
         Convert text from a buffer in memory, with options
