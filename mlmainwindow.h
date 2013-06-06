@@ -45,9 +45,10 @@ class mlMainWindow : public QMainWindow {
     void wordWrapChanged(bool);
     void documentModified();
     void translateText();
+    void synchronizeCursor();
 
     //*************************************************************************
-    private:
+    private:    // methods
 
     void readSettings();
     void writeSettings();
@@ -59,10 +60,9 @@ class mlMainWindow : public QMainWindow {
     QString strippedName() const;
 
     //*************************************************************************
-    private:
+    private:    // members
 
     QString curFile;
-
     Ui::mlMainWindow *ui;
     TECkitConverter *uniConverter;
 };

@@ -5,6 +5,7 @@
 //*****************************************************************************
 #include <QFile>
 #include <QByteArray>
+#include <QTextBlock>
 #include <QDebug>
 #include <QSettings>
 #include <QFileDialog>
@@ -134,6 +135,8 @@ mlMainWindow::mlMainWindow(QWidget *parent) :
 
     connect(ui->tbxEditor,      SIGNAL(textChanged()),
             this,               SLOT(translateText()) );
+    connect(ui->tbxEditor,      SIGNAL(cursorPositionChanged()),
+            this,               SLOT(synchronizeCursor()) );
 
     //-------------------------------------------------------------------------
     QFont f = ui->tbxUnicodeView->font();
@@ -401,6 +404,50 @@ void mlMainWindow::translateText() {
     o = uniConverter->convert(" " + i + " ");
     o.chop(1);
     ui->tbxUnicodeView->setPlainText( o.right( o.size() - 1 ) );
+
+    synchronizeCursor();
+}
+
+//*****************************************************************************
+void mlMainWindow::synchronizeCursor() {
+
+    QTextCursor edcur = ui->tbxEditor->textCursor();
+    QTextCursor uvcur = ui->tbxUnicodeView->textCursor();
+
+    int k = edcur.positionInBlock();
+    QTextBlock utb = ui->tbxUnicodeView->document()->findBlockByNumber( edcur.blockNumber() );
+    if( utb.isValid() ) {
+        if( k >= utb.length() )
+            k = utb.length() - 1;
+        uvcur.setPosition( utb.position() + k );
+        ui->tbxUnicodeView->setTextCursor(uvcur);
+    }
+    ui->tbxUnicodeView->ensureCursorVisible();
+
+    // highlight CurrentLine
+    // ** Editor
+    QList<QTextEdit::ExtraSelection> edExtraSelections;
+    QTextEdit::ExtraSelection edhighlight;
+    QColor edlineColor = QColor(Qt::yellow).lighter(160);
+
+    edhighlight.format.setBackground(edlineColor);
+    edhighlight.format.setProperty(QTextFormat::FullWidthSelection, true);
+    edhighlight.cursor = edcur;
+    edhighlight.cursor.clearSelection();
+    edExtraSelections.append(edhighlight);
+    ui->tbxEditor->setExtraSelections(edExtraSelections);
+
+    // ** Unicode View
+    QList<QTextEdit::ExtraSelection> uvExtraSelections;
+    QTextEdit::ExtraSelection uvhighlight;
+    QColor uvlineColor = QColor(Qt::blue).lighter(180);
+
+    uvhighlight.format.setBackground(uvlineColor);
+    uvhighlight.format.setProperty(QTextFormat::FullWidthSelection, true);
+    uvhighlight.cursor = uvcur;
+    uvhighlight.cursor.clearSelection();
+    uvExtraSelections.append(uvhighlight);
+    ui->tbxUnicodeView->setExtraSelections(uvExtraSelections);
 }
 
 //*****************************************************************************
