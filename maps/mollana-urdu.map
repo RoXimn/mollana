@@ -1,7 +1,7 @@
 ;*******************************************************************************
 EncodingName    "MOLLANA-URDU-2013"
 DescriptiveName "Mollana - Urdu roman transliteration mapping"
-Version         "1.2.1"
+Version         "1.2.2"
 Contact         "DrIYousaf@Gmail.com"
 Copyright       "(c) RoXimn 2013"
 ;-------------------------------------------------------------------------------
@@ -153,10 +153,15 @@ U+004D U+0049 U+0053 U+0052 U+0041 <> U+060F ;; MISRA
 
 ;-------------------------------------------------------------------------------
 ; Hamza
-M / BAR _        > U+0621        ; Isolated Hamza
-BAR M            < U+0621        ; Isolated Hamza
+M M / _ a          > U+0654
+M M / _ i          > U+0655
+M M               <> U+0654
+M M               <  U+0655
 
-h M / _ (END|i)   > U+06C2
+M / BAR _         > U+0621        ; Isolated Hamza
+BAR M            <  U+0621        ; Isolated Hamza
+
+h M / _ (END|i)    > U+06C2
 h M               <  U+06C2      ; Heh Goal with Hamza above
 
 M o / (A|d|D|Z|r|R|z|X z|V t|V z|v|o|U|E) _ <> U+0648 U+0654
@@ -307,6 +312,7 @@ H       <> U+06BE            ; Heh Do Cheshmee
 y       <> U+06CC    ; Yey Chotee without Dots
 E       <> U+06D2    ; Yey Baree
 P t     <> U+0629    ; Teh Marbuta
+P t     <  U+06C3    ; Teh Marbuta
 
 ;-------------------------------------------------------------------------------
 ; Numerics / Symbols
@@ -379,3 +385,9 @@ l BAR l     < U+0644 U+0644 ; Lam
 m BAR m     < U+0645 U+0645 ; Meen
 n BAR n     < U+0646 U+0646 ; Noon
 v BAR v     < U+0648 U+0648 ; Waw
+
+;*******************************************************************************
+pass(Unicode)
+U+0627 U+0657     < U+0623
+U+0648 U+0657     < U+0624
+U+0627 U+0655     < U+0625
