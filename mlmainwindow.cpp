@@ -128,9 +128,9 @@ mlMainWindow::mlMainWindow(QWidget *parent) :
     connect(ui->actionWordWrap, SIGNAL(toggled(bool)),
             this,               SLOT(wordWrapChanged(bool)) );
 
-    connect(ui->actionUnicodeOutput,
+    connect(ui->actionUnicodeView,
                                 SIGNAL(toggled(bool)),
-            ui->dckUnicodeOutput,
+            ui->dckUnicodeView,
                                 SLOT(setVisible(bool)) );
 
     connect(ui->tbxEditor,      SIGNAL(textChanged()),
@@ -139,9 +139,7 @@ mlMainWindow::mlMainWindow(QWidget *parent) :
             this,               SLOT(synchronizeCursor()) );
 
     //-------------------------------------------------------------------------
-    QFont f = ui->tbxUnicodeView->font();
-    f.setStyleStrategy(QFont::PreferAntialias);
-    ui->tbxUnicodeView->setFont(f);
+    readSettings();
 
     //-------------------------------------------------------------------------
     // Start with a new file
@@ -220,7 +218,9 @@ void mlMainWindow::showGettingStarted() {
     if( !QDesktopServices::openUrl(
                 "file:///" + qApp->applicationDirPath() + "/doc/guide.htm" ) ){
         QMessageBox::information( this, sAPPNAME,
-                                  tr("Unable to open the Getting Started guide.") );
+                    tr("Unable to open the Getting Started guide.\n"
+                       "Please ensure that the file exists and\n"
+                       "your OS has a default program set to open HTML files") );
     }
 }
 
@@ -230,7 +230,9 @@ void mlMainWindow::showCheatSheet() {
     if( !QDesktopServices::openUrl(
                 "file:///" + qApp->applicationDirPath() + "/doc/mollana-cheatsheet.pdf" ) ) {
         QMessageBox::information( this, sAPPNAME,
-                                  tr("Unable to open the cheat sheet.") );
+                                  tr("Unable to open the cheat sheet.\n"
+                                     "Please ensure that the file exists and\n"
+                                     "your OS has a default program set to open PDF files") );
     }
 }
 
@@ -264,24 +266,30 @@ void mlMainWindow::about() {
 //*****************************************************************************
 void mlMainWindow::readSettings() {
     //-------------------------------------------------------------------------
-    QSettings settings(sORGNAME, sAPPNAME);
-    QPoint pos = settings.value("pos", QPoint(200, 200)).toPoint();
-    QSize size = settings.value("size", QSize(400, 400)).toSize();
+    QSettings settings( sORGNAME, sAPPNAME );
 
-    resize(size);
-    move(pos);
+    QRect geom = settings.value("application/geometry", QRect(200, 200, 640, 480)).toRect();
+    qDebug() << "G  in: " << geom;
+    setGeometry(geom);
+
+    QString pwd = settings.value("application/pwd", QDir::homePath()).toString();
+    qDebug() << "PWD  in: " << pwd;
+    QDir::setCurrent( pwd );
 }
 
 //*****************************************************************************
 void mlMainWindow::writeSettings() {
     //-------------------------------------------------------------------------
-    QSettings settings(sORGNAME, sAPPNAME);
-    settings.setValue("pos", pos());
-    settings.setValue("size", size());
+    QSettings settings( sORGNAME, sAPPNAME );
+    qDebug() << "G out: " << geometry();
+    settings.setValue( "application/geometry", geometry() );
+    qDebug() << "PWD out: " << QDir::currentPath();
+    settings.setValue( "application/pwd", QDir::currentPath() );
 }
 
 //*****************************************************************************
 bool mlMainWindow::okToContinue() {
+    //-------------------------------------------------------------------------
     if( ui->tbxEditor->document()->isModified() ) {
         QMessageBox::StandardButton ret;
         ret = QMessageBox::warning(this, tr(sAPPNAME),
@@ -301,7 +309,7 @@ bool mlMainWindow::okToContinue() {
 
 //*****************************************************************************
 void mlMainWindow::setCurrentFile(const QString &fileName) {
-
+    //-------------------------------------------------------------------------
     curFile = fileName;
     ui->tbxEditor->document()->setModified(false);
     setWindowModified(false);
@@ -309,8 +317,11 @@ void mlMainWindow::setCurrentFile(const QString &fileName) {
     QString shownName = curFile;
     if( curFile.isEmpty() )
         shownName = "untitled.txt";
-    else
-        shownName = strippedName();
+    else {
+        QFileInfo fi(curFile);
+        shownName = fi.fileName();
+        QDir::setCurrent( fi.path() );
+    }
 
     setWindowFilePath(shownName);
     setWindowTitle( tr("%1 - %2[*]")
@@ -319,12 +330,8 @@ void mlMainWindow::setCurrentFile(const QString &fileName) {
 }
 
 //*****************************************************************************
-QString mlMainWindow::strippedName() const {
-    return QFileInfo(curFile).fileName();
-}
-
-//*****************************************************************************
 void mlMainWindow::loadFile(const QString &fileName) {
+    //-------------------------------------------------------------------------
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly | QFile::Text)) {
         QMessageBox::warning(this, tr(sAPPNAME),
@@ -345,6 +352,7 @@ void mlMainWindow::loadFile(const QString &fileName) {
 
 //*****************************************************************************
 bool mlMainWindow::saveFile(const QString &fileName) {
+    //-------------------------------------------------------------------------
     QFile file(fileName);
     if (!file.open(QFile::WriteOnly | QFile::Text)) {
         QMessageBox::warning(this, tr(sAPPNAME),
@@ -386,6 +394,7 @@ void mlMainWindow::unicodeFontChanged() {
 
 //*****************************************************************************
 void mlMainWindow::wordWrapChanged(bool checked) {
+    //-------------------------------------------------------------------------
     if( checked ) {
         ui->tbxEditor->setLineWrapMode( QPlainTextEdit::WidgetWidth );
         ui->tbxUnicodeView->setLineWrapMode( QTextEdit::WidgetWidth );
@@ -397,23 +406,27 @@ void mlMainWindow::wordWrapChanged(bool checked) {
 
 //*****************************************************************************
 void mlMainWindow::translateText() {
+    //-------------------------------------------------------------------------
     QString o, i;
     // The converter mangles things up if does not finds characters at the
     // ends of text
     i = ui->tbxEditor->document()->toPlainText();
-    o = uniConverter->convert(" " + i + " ");
-    o.chop(1);
-    ui->tbxUnicodeView->setPlainText( o.right( o.size() - 1 ) );
+    o = uniConverter->convert( i + " " );
+    o.chop(1); //ui->tbxUnicodeView->setPlainText( o.right( o.size() - 1 ) );
+    ui->tbxUnicodeView->setPlainText( o );
 
     synchronizeCursor();
 }
 
 //*****************************************************************************
 void mlMainWindow::synchronizeCursor() {
-
+    //-------------------------------------------------------------------------
     QTextCursor edcur = ui->tbxEditor->textCursor();
     QTextCursor uvcur = ui->tbxUnicodeView->textCursor();
 
+    // Current editor textblock# is used to find the corresponding textblock in
+    // unicode viewer, and the index into the textblock is added to the starting postion
+    // This gives a rough postion of the word in the unicode viewer
     int k = edcur.positionInBlock();
     QTextBlock utb = ui->tbxUnicodeView->document()->findBlockByNumber( edcur.blockNumber() );
     if( utb.isValid() ) {
@@ -424,9 +437,10 @@ void mlMainWindow::synchronizeCursor() {
     }
     ui->tbxUnicodeView->ensureCursorVisible();
 
+    //-------------------------------------------------------------------------
     // highlight CurrentLine
     // ** Editor
-    QList<QTextEdit::ExtraSelection> edExtraSelections;
+    QList<QTextEdit::ExtraSelection> edxtras;
     QTextEdit::ExtraSelection edhighlight;
     QColor edlineColor = QColor(Qt::yellow).lighter(160);
 
@@ -434,11 +448,11 @@ void mlMainWindow::synchronizeCursor() {
     edhighlight.format.setProperty(QTextFormat::FullWidthSelection, true);
     edhighlight.cursor = edcur;
     edhighlight.cursor.clearSelection();
-    edExtraSelections.append(edhighlight);
-    ui->tbxEditor->setExtraSelections(edExtraSelections);
+    edxtras.append(edhighlight);
+    ui->tbxEditor->setExtraSelections(edxtras);
 
     // ** Unicode View
-    QList<QTextEdit::ExtraSelection> uvExtraSelections;
+    QList<QTextEdit::ExtraSelection> uvXtras;
     QTextEdit::ExtraSelection uvhighlight;
     QColor uvlineColor = QColor(Qt::blue).lighter(180);
 
@@ -446,8 +460,8 @@ void mlMainWindow::synchronizeCursor() {
     uvhighlight.format.setProperty(QTextFormat::FullWidthSelection, true);
     uvhighlight.cursor = uvcur;
     uvhighlight.cursor.clearSelection();
-    uvExtraSelections.append(uvhighlight);
-    ui->tbxUnicodeView->setExtraSelections(uvExtraSelections);
+    uvXtras.append(uvhighlight);
+    ui->tbxUnicodeView->setExtraSelections(uvXtras);
 }
 
 //*****************************************************************************
