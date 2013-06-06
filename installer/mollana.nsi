@@ -2,7 +2,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "Mollana"
-!define PRODUCT_VERSION "v0.1a"
+!define PRODUCT_VERSION "v0.1.1a"
 !define PRODUCT_PUBLISHER "RoXimn"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\mollana.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
@@ -44,7 +44,7 @@
 
 ;-------------------------------
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "mollana0.1a-win32-setup.exe"
+OutFile "mollana0.1.1a-win32-setup.exe"
 InstallDir "$PROGRAMFILES\Mollana"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
@@ -81,6 +81,7 @@ Section "MainSection" SEC01
   
   StrCpy $FONT_DIR $FONTS
   !insertmacro InstallTTF '..\fonts\DroidNaskh-Regular.ttf'
+  !insertmacro InstallTTF '..\fonts\DroidSansMono.ttf'
   SendMessage ${HWND_BROADCAST} ${WM_FONTCHANGE} 0 0 /TIMEOUT=5000
 
   SetOutPath "$INSTDIR\vcredist"
