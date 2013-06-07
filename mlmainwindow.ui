@@ -55,8 +55,8 @@
      <widget class="QPlainTextEdit" name="tbxEditor">
       <property name="font">
        <font>
-        <family>Courier New</family>
-        <pointsize>10</pointsize>
+        <family>Droid Sans Mono</family>
+        <pointsize>12</pointsize>
        </font>
       </property>
      </widget>
@@ -124,7 +124,7 @@
     <property name="title">
      <string>View</string>
     </property>
-    <addaction name="actionUnicodeOutput"/>
+    <addaction name="actionUnicodeView"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -144,6 +144,9 @@
    <property name="contextMenuPolicy">
     <enum>Qt::NoContextMenu</enum>
    </property>
+   <property name="windowTitle">
+    <string>Standard</string>
+   </property>
    <property name="movable">
     <bool>false</bool>
    </property>
@@ -151,7 +154,7 @@
     <enum>Qt::ToolButtonTextUnderIcon</enum>
    </property>
    <property name="floatable">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
@@ -171,9 +174,24 @@
     <enum>Qt::NoContextMenu</enum>
    </property>
   </widget>
-  <widget class="QDockWidget" name="dckUnicodeOutput">
+  <widget class="QDockWidget" name="dckUnicodeView">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>100</width>
+     <height>100</height>
+    </size>
+   </property>
+   <property name="features">
+    <set>QDockWidget::AllDockWidgetFeatures</set>
+   </property>
    <property name="windowTitle">
-    <string>Unicode Output</string>
+    <string>Unicode View</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -200,11 +218,11 @@
        <property name="font">
         <font>
          <family>Droid Arabic Naskh</family>
-         <pointsize>18</pointsize>
+         <pointsize>14</pointsize>
         </font>
        </property>
        <property name="layoutDirection">
-        <enum>Qt::LeftToRight</enum>
+        <enum>Qt::RightToLeft</enum>
        </property>
       </widget>
      </item>
@@ -411,7 +429,7 @@
     <string>Ctrl+W</string>
    </property>
   </action>
-  <action name="actionUnicodeOutput">
+  <action name="actionUnicodeView">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -423,7 +441,7 @@
      <normaloff>:/icons/png32/office_folders.png</normaloff>:/icons/png32/office_folders.png</iconset>
    </property>
    <property name="text">
-    <string>UnicodeOutput</string>
+    <string>Unicode View</string>
    </property>
    <property name="toolTip">
     <string>Toggle unicode output window</string>
