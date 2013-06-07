@@ -425,17 +425,23 @@ void mlMainWindow::synchronizeCursor() {
     QTextCursor uvcur = ui->tbxUnicodeView->textCursor();
 
     // Current editor textblock# is used to find the corresponding textblock in
-    // unicode viewer, and the index into the textblock is added to the starting postion
-    // This gives a rough postion of the word in the unicode viewer
-    int k = edcur.positionInBlock();
+    // unicode viewer, and the length of the converted text, from the start of block,
+    // is used to get the index into the block.
+    int pos = edcur.position();
+    edcur.clearSelection();
+    edcur.movePosition( QTextCursor::StartOfBlock, QTextCursor::KeepAnchor, 1 );
+
     QTextBlock utb = ui->tbxUnicodeView->document()->findBlockByNumber( edcur.blockNumber() );
     if( utb.isValid() ) {
-        if( k >= utb.length() )
-            k = utb.length() - 1;
+        int k = uniConverter->convert( edcur.selectedText() ).length();
         uvcur.setPosition( utb.position() + k );
         ui->tbxUnicodeView->setTextCursor(uvcur);
     }
+
     ui->tbxUnicodeView->ensureCursorVisible();
+
+    edcur.clearSelection();
+    edcur.setPosition( pos );
 
     //-------------------------------------------------------------------------
     // highlight CurrentLine
