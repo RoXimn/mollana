@@ -1,5 +1,6 @@
 //*****************************************************************************
 #include "mlmainwindow.h"
+#include "mltexteditor.h"
 #include "ui_mlmainwindow.h"
 
 //*****************************************************************************
@@ -13,6 +14,9 @@
 #include <QMessageBox>
 #include <QTextOption>
 #include <QDesktopServices>
+#include <QPainter>
+
+class mlTextEditor;
 
 //*****************************************************************************
 mlMainWindow::mlMainWindow(QWidget *parent) :
@@ -445,18 +449,6 @@ void mlMainWindow::synchronizeCursor() {
 
     //-------------------------------------------------------------------------
     // highlight CurrentLine
-    // ** Editor
-    QList<QTextEdit::ExtraSelection> edxtras;
-    QTextEdit::ExtraSelection edhighlight;
-    QColor edlineColor = QColor(Qt::yellow).lighter(160);
-
-    edhighlight.format.setBackground(edlineColor);
-    edhighlight.format.setProperty(QTextFormat::FullWidthSelection, true);
-    edhighlight.cursor = edcur;
-    edhighlight.cursor.clearSelection();
-    edxtras.append(edhighlight);
-    ui->tbxEditor->setExtraSelections(edxtras);
-
     // ** Unicode View
     QList<QTextEdit::ExtraSelection> uvXtras;
     QTextEdit::ExtraSelection uvhighlight;

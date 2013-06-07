@@ -52,7 +52,7 @@
      <number>0</number>
     </property>
     <item>
-     <widget class="QPlainTextEdit" name="tbxEditor">
+     <widget class="mlTextEditor" name="tbxEditor">
       <property name="font">
        <font>
         <family>Droid Sans Mono</family>
@@ -515,6 +515,13 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>mlTextEditor</class>
+   <extends>QPlainTextEdit</extends>
+   <header>mltexteditor.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="mollana.qrc"/>
  </resources>

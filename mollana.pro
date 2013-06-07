@@ -12,19 +12,23 @@ TARGET = mollana
 TEMPLATE = app
 
 SOURCES += main.cpp \
+        mltexteditor.cpp \
         mlmainwindow.cpp \
         teckitconverter.cpp
 
 HEADERS  += mlmainwindow.h \
             teckitconverter.h \
             TECkit_Common.h \
-            TECkit_Engine.h
+            TECkit_Engine.h \
+            mltexteditor.h
 
 FORMS    += mlmainwindow.ui
 
 RC_FILE += mollana.rc
 
 RESOURCES += mollana.qrc
+
+INCLUDEPATH += -I$$_PRO_FILE_PWD_
 
 LIBS += -L$$_PRO_FILE_PWD_/teckit -lTECkit
 
