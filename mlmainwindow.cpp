@@ -139,8 +139,12 @@ mlMainWindow::mlMainWindow(QWidget *parent) :
 
     connect(ui->tbxEditor,      SIGNAL(textChanged()),
             this,               SLOT(translateText()) );
+    connect(ui->tbxEditor->document(),
+                                SIGNAL(contentsChange(int,int,int)),
+            this,               SLOT(textChanged(int,int,int)) );
     connect(ui->tbxEditor,      SIGNAL(cursorPositionChanged()),
             this,               SLOT(synchronizeCursor()) );
+
 
     //-------------------------------------------------------------------------
     readSettings();
@@ -247,7 +251,10 @@ void mlMainWindow::about() {
     msgBox.setIconPixmap( QPixmap(":/icons/png32/mollana64.png") );
     msgBox.setTextFormat(Qt::RichText);
     msgBox.setText(
-        tr("<p>© Copyright RoXimn 2013<br/>All right reserved.</p>"
+        tr(
+        "<p>%1 %2</p>"
+        "<p>© Copyright RoXimn 2013<br/>All rights reserved.</p>"
+        "<p>Released under Creative Commons Attribution License</p>"
 
         "<p>%1 is an Urdu Unicode text editor that uses "
         "Roman transilteration for easy LTR editing and seemless "
@@ -263,7 +270,7 @@ void mlMainWindow::about() {
         "Author: Jonathan Kew, Organization: <a href=\"http://scripts.sil.org\">SIL International</a><br/>"
         "TECkit is a low-level toolkit intended to be used for performing encoding conversions using a "
         "<i>TECkit engine</i> which relies on mapping tables to perform the conversions.</p>"
-       ).arg(sAPPNAME) );
+       ).arg( sAPPNAME, sAPPVERSION ) );
     msgBox.exec();
 }
 
@@ -395,7 +402,6 @@ void mlMainWindow::unicodeFontChanged() {
     }
 }
 
-
 //*****************************************************************************
 void mlMainWindow::wordWrapChanged(bool checked) {
     //-------------------------------------------------------------------------
@@ -412,14 +418,30 @@ void mlMainWindow::wordWrapChanged(bool checked) {
 void mlMainWindow::translateText() {
     //-------------------------------------------------------------------------
     QString o, i;
-    // The converter mangles things up if does not finds characters at the
-    // ends of text
+    // The converter needs a character at the end of imput text to
+    // encode the last character
+
     i = ui->tbxEditor->document()->toPlainText();
     o = uniConverter->convert( i + " " );
-    o.chop(1); //ui->tbxUnicodeView->setPlainText( o.right( o.size() - 1 ) );
-    ui->tbxUnicodeView->setPlainText( o );
+    o.chop(1); ui->tbxUnicodeView->setPlainText( o );
 
     synchronizeCursor();
+}
+
+//*****************************************************************************
+void mlMainWindow::textChanged(int position, int charsRemoved, int charsAdded) {
+    //-------------------------------------------------------------------------
+    static int prevBlockCount = 0;
+
+    int c = ui->tbxEditor->document()->blockCount();
+    qDebug() <<
+                  "position: "  << position <<
+                ", removed: "   << charsRemoved <<
+                ", added: "     << charsAdded <<
+                ", prev Blocks#: "      << prevBlockCount <<
+                ", current Block#: "    << c;
+
+    prevBlockCount = c;
 }
 
 //*****************************************************************************
@@ -437,7 +459,8 @@ void mlMainWindow::synchronizeCursor() {
 
     QTextBlock utb = ui->tbxUnicodeView->document()->findBlockByNumber( edcur.blockNumber() );
     if( utb.isValid() ) {
-        int k = uniConverter->convert( edcur.selectedText() ).length();
+        int k = uniConverter->convert( edcur.selectedText() ).length() - 1;
+        k = ( k < 0 ? 0 :  k );
         uvcur.setPosition( utb.position() + k );
         ui->tbxUnicodeView->setTextCursor(uvcur);
     }

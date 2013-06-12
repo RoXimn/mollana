@@ -98,8 +98,6 @@ quint32 TECkitConverter::getTargetFlags() {
 // Convert the
 QString TECkitConverter::convert( const QString& intxt ) {
 
-    const int BUFFERSZ = 5242880;
-
     /*
         Convert text from a buffer in memory, with options
         (note that former inputIsComplete flag is now a bit in the options parameter)
@@ -121,37 +119,54 @@ QString TECkitConverter::convert( const QString& intxt ) {
     UInt32 inUsed = 0;
     UInt32 outUsed = 0;
     UInt32 lookahead = 0;
-    //QByteArray inutf = intxt.toUtf8();
-    QByteArray oututf = QByteArray();
 
+    const int BUFFERSZ = ( intxt.length() * 3 ) + ( intxt.length() % 2 );
+    QByteArray oututf = QByteArray();
     oututf.resize(BUFFERSZ);
 
-    long status = TECkit_ConvertBufferOpt(
-                        mp_converter,
+    QString outtxt;
 
-                        (Byte*)intxt.utf16(), // QString UTF16 data
-                        intxt.size() << 1, // Number of chars * 2 bytes
-                        &inUsed,
+    if( isValid() && !intxt.isEmpty() ) {
+        long status ;
+        status = TECkit_ResetConverter( mp_converter );
+        if (status != kStatus_NoError) {
+            qDebug() << "TECkit_ResetConverter status error: " << status << "\n";
+        }
 
-                        (Byte*)oututf.data(),
-                        BUFFERSZ,
-                        &outUsed,
+        status = TECkit_ConvertBufferOpt(
+                            mp_converter,
 
-                        kOptionsUnmapped_UseReplacementCharSilently,
-                        &lookahead );
+                            (Byte*)intxt.utf16(), // QString UTF16 data
+                            intxt.size() << 1, // Number of chars * 2 bytes
+                            &inUsed,
 
-    if (status != kStatus_NoError) {
-        if( (status & kStatusMask_Basic) != kStatus_NeedMoreInput ) {
-            // raise exception
-            qDebug() << "TECkit_ConvertBufferOpt status error: " << status << "\n";
-            return QString("!*!*!ERROR!*!*!");
-        } else {
-            Q_ASSERT(outUsed < oututf.size());
-            oututf[outUsed] = '\0';
+                            (Byte*)oututf.data(),
+                            BUFFERSZ,
+                            &outUsed,
+
+                            kOptionsUnmapped_UseReplacementCharSilently,
+                            &lookahead );
+
+//        qDebug() <<   "in: "        << (intxt.length() << 1) <<
+//                    ", in used: "   << inUsed <<
+//                    ", out: "       << outUsed <<
+//                    ", Buffer: "    << BUFFERSZ <<
+//                    ", lookahead: " << lookahead;
+
+        if (status != kStatus_NoError) {
+            if( (status & kStatusMask_Basic) != kStatus_NeedMoreInput ) {
+                // raise exception
+                qDebug() << "TECkit_ConvertBufferOpt status error: " << status << "\n";
+                outtxt = "!*!*!ERROR!*!*!";
+            } else {
+                Q_ASSERT(outUsed < oututf.size());
+                oututf[outUsed] = '\0';
+                outtxt = QString::fromUtf8( oututf );
+            }
         }
     }
 
-    return QString::fromUtf8(oututf);
+    return outtxt;
 }
 
 //*****************************************************************************

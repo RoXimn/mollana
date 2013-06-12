@@ -16,6 +16,8 @@ Features
 * Easy to learn roman transliteration
 * No need to "Learn a new Urdu Keyboard"
 * Fully unicode compliant for Urdu text
-
+* Synchronized scrolling between the roman input and the unicode output
+* Current line highlighting in both panes
+* Line numbering for editor pane
 
 (c) Copyright RoXimn 2013. All rights reserved.

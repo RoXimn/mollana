@@ -10,6 +10,7 @@
 //*****************************************************************************
 const char sORGNAME[] = "RoC";
 const char sAPPNAME[] = "Mollana";
+const char sAPPVERSION[] = "v0.1.1a";
 
 //*****************************************************************************
 namespace Ui {
@@ -45,6 +46,7 @@ class mlMainWindow : public QMainWindow {
     void wordWrapChanged(bool);
     void documentModified();
     void translateText();
+    void textChanged(int position, int charsRemoved, int charsAdded);
     void synchronizeCursor();
 
     //*************************************************************************

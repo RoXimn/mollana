@@ -28,7 +28,7 @@ RC_FILE += mollana.rc
 
 RESOURCES += mollana.qrc
 
-INCLUDEPATH += -I$$_PRO_FILE_PWD_
+INCLUDEPATH += -I$$_PRO_FILE_PWD_/teckit
 
 LIBS += -L$$_PRO_FILE_PWD_/teckit -lTECkit
 
