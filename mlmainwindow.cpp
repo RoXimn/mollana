@@ -253,8 +253,9 @@ void mlMainWindow::about() {
     msgBox.setText(
         tr(
         "<p>%1 %2</p>"
-        "<p>© Copyright RoXimn 2013<br/>All rights reserved.</p>"
-        "<p>Released under Creative Commons Attribution License</p>"
+        "<p>© Copyright RoXimn 2013. All rights reserved.<br/>"
+        "Contact: <a href=\"mailto:driyousaf@gmail.com\">DrIYousaf@Gmail.com<a></p>"
+        "<p>Released under <i>Creative Commons Attribution License</i></p>"
 
         "<p>%1 is an Urdu Unicode text editor that uses "
         "Roman transilteration for easy LTR editing and seemless "
