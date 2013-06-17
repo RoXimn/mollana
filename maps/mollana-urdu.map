@@ -1,7 +1,7 @@
 ;*******************************************************************************
 EncodingName    "MOLLANA-URDU-2013"
 DescriptiveName "Mollana - Urdu roman transliteration mapping"
-Version         "1.2.2"
+Version         "1.2.3"
 Contact         "DrIYousaf@Gmail.com"
 Copyright       "(c) RoXimn 2013"
 ;-------------------------------------------------------------------------------
@@ -309,10 +309,13 @@ U        > U+0648            ; -do-
 h       <> U+06C1            ; Heh Goal
 H       <> U+06BE            ; Heh Do Cheshmee
 
-y       <> U+06CC    ; Yey Chotee without Dots
-E       <> U+06D2    ; Yey Baree
-P t     <> U+0629    ; Teh Marbuta
-P t     <  U+06C3    ; Teh Marbuta
+y y     <> U+06CC U+0651    ; Yey Chotee with + Shaddah
+y       <> U+06CC           ; Yey Chotee without Dots
+
+E       <> U+06D2           ; Yey Baree
+
+P t     <> U+0629           ; Teh Marbuta
+P t     <  U+06C3           ; Teh Marbuta
 
 ;-------------------------------------------------------------------------------
 ; Numerics / Symbols
