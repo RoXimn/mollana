@@ -55,8 +55,8 @@
      <widget class="mlTextEditor" name="tbxEditor">
       <property name="font">
        <font>
-        <family>Droid Sans Mono</family>
-        <pointsize>12</pointsize>
+        <family>Palatino Linotype</family>
+        <pointsize>24</pointsize>
        </font>
       </property>
      </widget>

@@ -120,7 +120,7 @@ QString TECkitConverter::convert( const QString& intxt ) {
     UInt32 outUsed = 0;
     UInt32 lookahead = 0;
 
-    const int BUFFERSZ = ( intxt.length() * 3 ) + ( intxt.length() % 2 );
+    const int BUFFERSZ = ( intxt.length() * 3 ) + ( intxt.length() % 2 ) + 16;
     QByteArray oututf = QByteArray();
     oututf.resize(BUFFERSZ);
 

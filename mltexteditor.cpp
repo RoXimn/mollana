@@ -9,6 +9,11 @@
 mlTextEditor::mlTextEditor(QWidget *parent) : QPlainTextEdit(parent) {
 
     m_lineNumberArea = new LineNumberArea(this);
+    m_highlighter = new mlHighlighter(document());
+
+    QTextOption op = document()->defaultTextOption();
+    op.setFlags( op.flags() | QTextOption::ShowTabsAndSpaces );
+    document()->setDefaultTextOption( op );
 
     connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth(int)));
     connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
@@ -103,6 +108,96 @@ void mlTextEditor::lineNumberAreaPaintEvent(QPaintEvent *event) {
         top = bottom;
         bottom = top + (int) blockBoundingRect(block).height();
         ++blockNumber;
+    }
+}
+
+//*****************************************************************************
+mlHighlighter::mlHighlighter(QTextDocument *parent)
+    : QSyntaxHighlighter(parent) {
+    //-------------------------------------------------------------------------
+    HighlightingRule rule;
+
+    //-------------------------------------------------------------------------
+    // whiteSpaceFormat
+    whiteSpaceFormat.setForeground(Qt::gray);
+    rule.pattern = QRegExp("\\s+");
+    rule.format = whiteSpaceFormat;
+    highlightingRules.append(rule);
+
+    //-------------------------------------------------------------------------
+    // numericFormat
+    numericFormat.setForeground(Qt::red);
+    rule.pattern = QRegExp("\\d+");
+    rule.format = numericFormat;
+    highlightingRules.append(rule);
+
+    //-------------------------------------------------------------------------
+    // punctuationFormat
+    punctuationFormat.setForeground(Qt::darkGreen);
+    rule.format = punctuationFormat;
+
+    // Full stop
+    rule.pattern = QRegExp("(\\.\\.)+");
+    highlightingRules.append(rule);
+
+    // Tatweel
+    rule.pattern = QRegExp("(\\-\\-)+");
+    highlightingRules.append(rule);
+
+    // Decimal Separator
+    rule.pattern = QRegExp("(?=\\d)\\.(?=\\d)");
+    highlightingRules.append(rule);
+
+    // Others
+    rule.pattern = QRegExp("[\\?\\|;%\\*\\(\\)\\{\\}\\[\\]\\!\\@\\#\\$\\&\\-\\+\\=]+");
+    highlightingRules.append(rule);
+
+    //-------------------------------------------------------------------------
+    // honorificsFormat
+    honorificsFormat.setForeground(Qt::magenta);
+    rule.format = honorificsFormat;
+
+    rule.pattern = QRegExp("(\\|PBUH|\\|ALY|\\|RADI|\\|RHMT|\\|TKH)");
+    highlightingRules.append(rule);
+    //-------------------------------------------------------------------------
+    // haraqatFormat
+    haraqatFormat.setForeground(Qt::blue);
+    rule.format = haraqatFormat;
+
+    rule.pattern = QRegExp("(\\b[AIU]|\\B[aiu]{1,2}|\\^)" );
+    highlightingRules.append(rule);
+
+    rule.pattern = QRegExp("(\\.aN\\b|\\.iN\\b|\\.uN\\b|"
+                           "\\.AN\\b|\\.IN\\b|\\.UN\\b)");
+    highlightingRules.append(rule);
+    //-------------------------------------------------------------------------
+    // alphabetsFormat
+//    alphabetsFormat.setForeground(Qt::red);
+//    rule.pattern = QRegExp("//[^\n]*");
+//    rule.format = alphabetsFormat;
+//    highlightingRules.append(rule);
+
+    //-------------------------------------------------------------------------
+    // ligaturesFormat
+    ligaturesFormat.setForeground(Qt::darkBlue);
+    rule.format = ligaturesFormat;
+
+    rule.pattern = QRegExp("(ALLAH|AKBAR|JALLA|MUHAMMAD|RASUL|SALLA|"
+                           "ALAYHI|WASALLAM|SALAM|SLM|BISMILLAH)");
+    highlightingRules.append(rule);
+}
+
+//*****************************************************************************
+void mlHighlighter::highlightBlock(const QString &text) {
+    //-------------------------------------------------------------------------
+    foreach (const HighlightingRule &rule, highlightingRules) {
+        QRegExp expression(rule.pattern);
+        int index = expression.indexIn(text);
+        while (index >= 0) {
+            int length = expression.matchedLength();
+            setFormat(index, length, rule.format);
+            index = expression.indexIn(text, index + length);
+        }
     }
 }
 
