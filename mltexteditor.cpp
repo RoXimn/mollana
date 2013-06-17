@@ -172,15 +172,22 @@ mlHighlighter::mlHighlighter(QTextDocument *parent)
     highlightingRules.append(rule);
     //-------------------------------------------------------------------------
     // alphabetsFormat
-//    alphabetsFormat.setForeground(Qt::red);
-//    rule.pattern = QRegExp("//[^\n]*");
-//    rule.format = alphabetsFormat;
-//    highlightingRules.append(rule);
+    alphabetsFormat.setForeground(Qt::darkRed);
+    rule.format = alphabetsFormat;
+
+    rule.pattern = QRegExp("(bb|pp|tt|TT|'s's|jj|cc|'h'h|KK"
+                           "dd|DD|ZZ|rr|RR|zz|'z'z|ss|SS|"
+                           "\\.s\\.s|\\.z\\.z|,s,s|,z,z|"
+                           "ee|GG|ff|qq|kk|'k'k|gg|ll|mm|nn|vv|yy)");
+    highlightingRules.append(rule);
 
     //-------------------------------------------------------------------------
     // ligaturesFormat
     ligaturesFormat.setForeground(Qt::darkBlue);
     rule.format = ligaturesFormat;
+
+    rule.pattern = QRegExp("(SANAH|SAFHA|NUMBER|FOOTNOTE|SHER|MISRA)");
+    highlightingRules.append(rule);
 
     rule.pattern = QRegExp("(ALLAH|AKBAR|JALLA|MUHAMMAD|RASUL|SALLA|"
                            "ALAYHI|WASALLAM|SALAM|SLM|BISMILLAH)");
