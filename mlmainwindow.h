@@ -10,7 +10,7 @@
 //*****************************************************************************
 const char sORGNAME[] = "RoC";
 const char sAPPNAME[] = "Mollana";
-const char sAPPVERSION[] = "v0.1.1a";
+const char sAPPVERSION[] = "v0.1.2a";
 
 //*****************************************************************************
 namespace Ui {
