@@ -153,13 +153,6 @@ mlHighlighter::mlHighlighter(QTextDocument *parent)
     highlightingRules.append(rule);
 
     //-------------------------------------------------------------------------
-    // honorificsFormat
-    honorificsFormat.setForeground(Qt::magenta);
-    rule.format = honorificsFormat;
-
-    rule.pattern = QRegExp("(\\|PBUH|\\|ALY|\\|RADI|\\|RHMT|\\|TKH)");
-    highlightingRules.append(rule);
-    //-------------------------------------------------------------------------
     // haraqatFormat
     haraqatFormat.setForeground(Qt::blue);
     rule.format = haraqatFormat;
@@ -168,7 +161,7 @@ mlHighlighter::mlHighlighter(QTextDocument *parent)
     highlightingRules.append(rule);
 
     rule.pattern = QRegExp("(\\.aN\\b|\\.iN\\b|\\.uN\\b|"
-                           "\\.AN\\b|\\.IN\\b|\\.UN\\b)");
+                           "\\.AN\\b|\\.IN\\b|\\.UN\\b|-e\\b)");
     highlightingRules.append(rule);
     //-------------------------------------------------------------------------
     // alphabetsFormat
@@ -177,8 +170,16 @@ mlHighlighter::mlHighlighter(QTextDocument *parent)
 
     rule.pattern = QRegExp("(bb|pp|tt|TT|'s's|jj|cc|'h'h|KK"
                            "dd|DD|ZZ|rr|RR|zz|'z'z|ss|SS|"
-                           "\\.s\\.s|\\.z\\.z|,s,s|,z,z|"
+                           "\\.s\\.s|\\.z\\.z|,t,t|,z,z|"
                            "ee|GG|ff|qq|kk|'k'k|gg|ll|mm|nn|vv|yy)");
+    highlightingRules.append(rule);
+
+    //-------------------------------------------------------------------------
+    // honorificsFormat
+    honorificsFormat.setForeground(Qt::magenta);
+    rule.format = honorificsFormat;
+
+    rule.pattern = QRegExp("(\\|PBUH|\\|ALY|\\|RADI|\\|RHMT|\\|TKH)");
     highlightingRules.append(rule);
 
     //-------------------------------------------------------------------------
