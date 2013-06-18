@@ -46,8 +46,8 @@ class mlMainWindow : public QMainWindow {
     void wordWrapChanged(bool);
     void documentModified();
     void translateText();
-    void textChanged(int position, int charsRemoved, int charsAdded);
     void synchronizeCursor();
+    void checkSpelling();
 
     //*************************************************************************
     private:    // methods

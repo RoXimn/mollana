@@ -119,6 +119,8 @@
     </widget>
     <addaction name="actionWordWrap"/>
     <addaction name="menuFormatFont"/>
+    <addaction name="separator"/>
+    <addaction name="actionSpellChecker"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -511,6 +513,23 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+F1</string>
+   </property>
+  </action>
+  <action name="actionSpellChecker">
+   <property name="icon">
+    <iconset resource="mollana.qrc">
+     <normaloff>:/icons/png32/chalk_board.png</normaloff>:/icons/png32/chalk_board.png</iconset>
+   </property>
+   <property name="text">
+    <string>Spell Checker</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Tahoma</family>
+    </font>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
    </property>
   </action>
  </widget>

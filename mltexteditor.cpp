@@ -2,13 +2,20 @@
 #include <QPainter>
 #include <QTextBlock>
 
+#include <QFile>
+#include <QTextStream>
+#include <QTextCodec>
+#include <QStringList>
+#include <QDebug>
+
 //*****************************************************************************
 #include "mltexteditor.h"
+#include "hunspell.hxx"
 
 //*****************************************************************************
 mlTextEditor::mlTextEditor(QWidget *parent) : QPlainTextEdit(parent) {
 
-    m_lineNumberArea = new LineNumberArea(this);
+    m_lineNumberArea = new mlLineNumberArea(this);
     m_highlighter = new mlHighlighter(document());
 
     QTextOption op = document()->defaultTextOption();
@@ -207,6 +214,120 @@ void mlHighlighter::highlightBlock(const QString &text) {
             index = expression.indexIn(text, index + length);
         }
     }
+}
+
+//*****************************************************************************
+mlSpellChecker::mlSpellChecker(const QString &dictionaryPath,
+                           const QString &userDictionary) {
+
+    //-------------------------------------------------------------------------
+    m_userDictionary = userDictionary;
+
+    QString dictFile = dictionaryPath + ".dic";
+    QString affixFilename = dictionaryPath + ".aff";
+    QByteArray dictFilePathBA = dictFile.toLocal8Bit();
+    QByteArray affixFilePathBA = affixFilename.toLocal8Bit();
+    m_hunspell = new Hunspell(affixFilePathBA.constData(), dictFilePathBA.constData());
+
+    //-------------------------------------------------------------------------
+    // detect encoding analyzing the SET option in the affix file
+    m_encoding = "ISO8859-1";
+    QFile affixFile(affixFilename);
+    if (affixFile.open(QIODevice::ReadOnly)) {
+        QTextStream stream(&affixFile);
+        QRegExp enc_detector("^\\s*SET\\s+([A-Z0-9\\-]+)\\s*", Qt::CaseInsensitive);
+        for(QString line = stream.readLine(); !line.isEmpty(); line = stream.readLine()) {
+            if (enc_detector.indexIn(line) > -1) {
+                m_encoding = enc_detector.cap(1);
+                qDebug() << QString("Encoding set to ") + m_encoding;
+                break;
+            }
+        }
+        affixFile.close();
+    }
+    m_codec = QTextCodec::codecForName(this->m_encoding.toLatin1().constData());
+
+    //-------------------------------------------------------------------------
+    if(!m_userDictionary.isEmpty()) {
+        QFile userDictonaryFile(m_userDictionary);
+        if(userDictonaryFile.open(QIODevice::ReadOnly)) {
+            QTextStream stream(&userDictonaryFile);
+            for(QString word = stream.readLine();
+                !word.isEmpty(); word = stream.readLine())
+            put_word(word);
+            userDictonaryFile.close();
+        } else {
+            qWarning() << "User dictionary in "
+                       << m_userDictionary
+                       << "could not be opened";
+        }
+    } else {
+        qDebug() << "User dictionary not set.";
+    }
+    //-------------------------------------------------------------------------
+}
+
+//*****************************************************************************
+mlSpellChecker::~mlSpellChecker() {
+    delete m_hunspell;
+}
+
+//*****************************************************************************
+bool mlSpellChecker::spell(const QString &word) {
+    //-------------------------------------------------------------------------
+    // Encode from Unicode to the encoding used by current dictionary
+    return m_hunspell->spell(m_codec->fromUnicode(word).constData()) != 0;
+}
+
+//*****************************************************************************
+QStringList mlSpellChecker::suggest(const QString &word) {
+    //-------------------------------------------------------------------------
+    char **suggestWordList;
+
+    //-------------------------------------------------------------------------
+    // Encode from Unicode to the encoding used by current dictionary
+    int numSuggestions = m_hunspell->suggest( &suggestWordList,
+                                 m_codec->fromUnicode(word).constData() );
+    QStringList suggestions;
+    for(int i=0; i < numSuggestions; ++i) {
+        suggestions << m_codec->toUnicode(suggestWordList[i]);
+        free(suggestWordList[i]);
+    }
+    return suggestions;
+    //-------------------------------------------------------------------------
+}
+
+//*****************************************************************************
+void mlSpellChecker::ignoreWord(const QString &word) {
+    //-------------------------------------------------------------------------
+    put_word(word);
+}
+
+//*****************************************************************************
+void mlSpellChecker::put_word(const QString &word) {
+    //-------------------------------------------------------------------------
+    m_hunspell->add(m_codec->fromUnicode(word).constData());
+}
+
+//*****************************************************************************
+void mlSpellChecker::addToUserWordlist(const QString &word) {
+    //-------------------------------------------------------------------------
+    put_word(word);
+    if(!m_userDictionary.isEmpty()) {
+        QFile userDictonaryFile(m_userDictionary);
+        if(userDictonaryFile.open(QIODevice::Append)) {
+            QTextStream stream(&userDictonaryFile);
+            stream << word << "\n";
+            userDictonaryFile.close();
+        } else {
+            qWarning() << "User dictionary in "
+                       << m_userDictionary
+                       << "could not be opened for appending a new word";
+        }
+    } else {
+        qDebug() << "User dictionary not set.";
+    }
+    //-------------------------------------------------------------------------
 }
 
 //*****************************************************************************

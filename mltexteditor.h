@@ -8,9 +8,12 @@
 #include <QObject>
 
 //*****************************************************************************
-class LineNumberArea;
+class mlLineNumberArea;
 class mlHighlighter;
+class Hunspell;
 
+//*****************************************************************************
+//*****************************************************************************
 //*****************************************************************************
 class mlTextEditor : public QPlainTextEdit {
 
@@ -44,20 +47,22 @@ class mlTextEditor : public QPlainTextEdit {
 };
 
 //*****************************************************************************
+//*****************************************************************************
+//*****************************************************************************
 class mlHighlighter : public QSyntaxHighlighter {
     //*************************************************************************
     Q_OBJECT
 
     //*************************************************************************
-    public:
+    public: //-----------------------------------------------------------------
         mlHighlighter(QTextDocument *parent = 0);
 
     //*************************************************************************
-    protected:
+    protected: //--------------------------------------------------------------
         void highlightBlock(const QString &text);
 
     //*************************************************************************
-    private:
+    private: //----------------------------------------------------------------
         struct HighlightingRule {
          QRegExp pattern;
          QTextCharFormat format;
@@ -77,11 +82,11 @@ class mlHighlighter : public QSyntaxHighlighter {
 
 
 //*****************************************************************************
-class LineNumberArea : public QWidget {
+class mlLineNumberArea : public QWidget {
 
     //*************************************************************************
-    public:
-        LineNumberArea(mlTextEditor *editor) : QWidget(editor) {
+    public: //-----------------------------------------------------------------
+        mlLineNumberArea(mlTextEditor *editor) : QWidget(editor) {
             m_textEditor = editor;
         }
 
@@ -90,18 +95,44 @@ class LineNumberArea : public QWidget {
         }
 
     //*************************************************************************
-    protected:
-
+    protected: //--------------------------------------------------------------
         void paintEvent(QPaintEvent *event) {
             m_textEditor->lineNumberAreaPaintEvent(event);
         }
 
     //*************************************************************************
-    private:
+    private: //----------------------------------------------------------------
 
-    mlTextEditor *m_textEditor;
+        mlTextEditor *m_textEditor;
     //*************************************************************************
 };
+
+//*****************************************************************************
+//*****************************************************************************
+//*****************************************************************************
+class mlSpellChecker {
+
+    //*************************************************************************
+    public: //-----------------------------------------------------------------
+        mlSpellChecker(const QString &dictionaryPath, const QString &userDictionary);
+        ~mlSpellChecker();
+
+        bool spell(const QString &word);
+        QStringList suggest(const QString &word);
+        void ignoreWord(const QString &word);
+        void addToUserWordlist(const QString &word);
+
+    //*************************************************************************
+    private: //----------------------------------------------------------------
+        void put_word(const QString &word);
+        Hunspell *m_hunspell;
+        QString m_userDictionary;
+        QString m_encoding;
+        QTextCodec *m_codec;
+
+    //*************************************************************************
+};
+
 
 //*****************************************************************************
 #endif // MLTEXTEDITOR_H

@@ -74,6 +74,8 @@ mlMainWindow::mlMainWindow(QWidget *parent) :
 
     //-------------------------------------------------------------------------
     // Signal/Slots
+
+    //File menu
     connect(ui->actionNew,      SIGNAL(triggered()),
             this,               SLOT(newFile()) );
     connect(ui->actionOpen,     SIGNAL(triggered()),
@@ -84,26 +86,10 @@ mlMainWindow::mlMainWindow(QWidget *parent) :
             this,               SLOT(saveAs()) );
     connect(ui->actionQuit,     SIGNAL(triggered()),
             this,               SLOT(close()) );
+
+    //Edit menu
     connect(ui->actionSelectAll,SIGNAL(triggered()),
             ui->tbxEditor,      SLOT(selectAll()) );
-    connect(ui->actionEditorFont,
-                                SIGNAL(triggered()),
-            this,               SLOT(editorFontChanged()) );
-    connect(ui->actionUnicodeViewFont,
-                                SIGNAL(triggered()),
-            this,               SLOT(unicodeFontChanged()) );
-    connect(ui->actionGettingStarted,
-                                SIGNAL(triggered()),
-            this,               SLOT(showGettingStarted()) );
-    connect(ui->actionCheatSheet,
-                                SIGNAL(triggered()),
-            this,               SLOT(showCheatSheet()) );
-    connect(ui->actionAbout,    SIGNAL(triggered()),
-            this,               SLOT(about()) );
-
-    connect(ui->tbxEditor->document(),
-                                SIGNAL(contentsChanged()),
-            this,               SLOT(documentModified()) );
 
     // Copy, Cut & Paste
     connect(ui->actionCut,      SIGNAL(triggered()),
@@ -129,22 +115,45 @@ mlMainWindow::mlMainWindow(QWidget *parent) :
     connect(ui->tbxEditor,      SIGNAL(redoAvailable(bool)),
             ui->actionRedo,     SLOT(setEnabled(bool)) );
 
+    //Format menu
+    connect(ui->actionEditorFont,
+                                SIGNAL(triggered()),
+            this,               SLOT(editorFontChanged()) );
+    connect(ui->actionUnicodeViewFont,
+                                SIGNAL(triggered()),
+            this,               SLOT(unicodeFontChanged()) );
     connect(ui->actionWordWrap, SIGNAL(toggled(bool)),
             this,               SLOT(wordWrapChanged(bool)) );
 
+    connect(ui->actionSpellChecker,
+                                SIGNAL(triggered()),
+            this,               SLOT(checkSpelling()) );
+
+    //View menu
     connect(ui->actionUnicodeView,
                                 SIGNAL(toggled(bool)),
             ui->dckUnicodeView,
                                 SLOT(setVisible(bool)) );
 
+    //Help menu
+    connect(ui->actionGettingStarted,
+                                SIGNAL(triggered()),
+            this,               SLOT(showGettingStarted()) );
+    connect(ui->actionCheatSheet,
+                                SIGNAL(triggered()),
+            this,               SLOT(showCheatSheet()) );
+    connect(ui->actionAbout,    SIGNAL(triggered()),
+            this,               SLOT(about()) );
+
+
+    // EDITOR
+    connect(ui->tbxEditor->document(),
+                                SIGNAL(contentsChanged()),
+            this,               SLOT(documentModified()) );
     connect(ui->tbxEditor,      SIGNAL(textChanged()),
             this,               SLOT(translateText()) );
-    connect(ui->tbxEditor->document(),
-                                SIGNAL(contentsChange(int,int,int)),
-            this,               SLOT(textChanged(int,int,int)) );
     connect(ui->tbxEditor,      SIGNAL(cursorPositionChanged()),
             this,               SLOT(synchronizeCursor()) );
-
 
     //-------------------------------------------------------------------------
     readSettings();
@@ -427,23 +436,9 @@ void mlMainWindow::translateText() {
     o.chop(1); ui->tbxUnicodeView->setPlainText( o );
 
     synchronizeCursor();
+    checkSpelling();
 }
 
-//*****************************************************************************
-void mlMainWindow::textChanged(int position, int charsRemoved, int charsAdded) {
-    //-------------------------------------------------------------------------
-    static int prevBlockCount = 0;
-
-    int c = ui->tbxEditor->document()->blockCount();
-    qDebug() <<
-                  "position: "  << position <<
-                ", removed: "   << charsRemoved <<
-                ", added: "     << charsAdded <<
-                ", prev Blocks#: "      << prevBlockCount <<
-                ", current Block#: "    << c;
-
-    prevBlockCount = c;
-}
 
 //*****************************************************************************
 void mlMainWindow::synchronizeCursor() {
@@ -484,6 +479,59 @@ void mlMainWindow::synchronizeCursor() {
     uvhighlight.cursor.clearSelection();
     uvXtras.append(uvhighlight);
     ui->tbxUnicodeView->setExtraSelections(uvXtras);
+}
+
+//*****************************************************************************
+void mlMainWindow::checkSpelling() {
+    //-------------------------------------------------------------------------
+    QString dictPath = qApp->applicationDirPath() + "/dict/mollana-urdu";
+    QString userDict= qApp->applicationDirPath() + "/dict/mollana-urdu-custom.txt";;
+    mlSpellChecker *spellChecker = new mlSpellChecker(dictPath, userDict);
+
+    QTextCharFormat highlightFormat;
+    highlightFormat.setUnderlineColor(QColor("red"));
+    highlightFormat.setUnderlineStyle(QTextCharFormat::WaveUnderline);
+
+    //-------------------------------------------------------------------------
+    QTextCursor cursor = ui->tbxUnicodeView->textCursor();
+    cursor.setPosition(0);
+
+    //-------------------------------------------------------------------------
+    QList<QTextEdit::ExtraSelection> esList;
+    while(!cursor.atEnd()) {
+        cursor.movePosition(QTextCursor::EndOfWord, QTextCursor::KeepAnchor, 1);
+        QString word = cursor.selectedText();
+
+        // Workaround for better recognition of words
+        // punctuation etc. does not belong to words
+        while(!word.isEmpty() && !word.at(0).isLetter() && cursor.anchor() < cursor.position()) {
+            int cursorPos = cursor.position();
+            cursor.setPosition(cursor.anchor() + 1, QTextCursor::MoveAnchor);
+            cursor.setPosition(cursorPos, QTextCursor::KeepAnchor);
+            word = cursor.selectedText();
+        }
+
+        if(!word.isEmpty() && !spellChecker->spell(word)) {
+            QTextCursor tmpCursor(cursor);
+            tmpCursor.setPosition(cursor.anchor());
+//            ui->tbxUnicodeView->setTextCursor(tmpCursor);
+//            ui->tbxUnicodeView->ensureCursorVisible();
+
+            // highlight the unknown word
+            QTextEdit::ExtraSelection es;
+            es.cursor = cursor;
+            es.format = highlightFormat;
+
+            esList << es;
+            QCoreApplication::processEvents();
+        }
+        cursor.movePosition(QTextCursor::NextWord, QTextCursor::MoveAnchor, 1);
+    }
+    ui->tbxUnicodeView->setExtraSelections(esList);
+
+    //-------------------------------------------------------------------------
+//    ui->statusBar->showMessage(tr("The spell check has finished."), 1000);
+    //-------------------------------------------------------------------------
 }
 
 //*****************************************************************************

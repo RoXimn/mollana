@@ -1,7 +1,4 @@
 #-------------------------------------------------
-#
-# Project created by QtCreator 2013-05-07T00:16:00
-#
 #-------------------------------------------------
 
 QT       += core gui
@@ -10,6 +7,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = mollana
 TEMPLATE = app
+
+DEFINES += HUNSPELL_STATIC
 
 SOURCES += main.cpp \
         mltexteditor.cpp \
@@ -28,9 +27,11 @@ RC_FILE += mollana.rc
 
 RESOURCES += mollana.qrc
 
-INCLUDEPATH += -I$$_PRO_FILE_PWD_/teckit
+INCLUDEPATH += $$_PRO_FILE_PWD_/teckit
+INCLUDEPATH += $$_PRO_FILE_PWD_/hunspell
 
-LIBS += -L$$_PRO_FILE_PWD_/teckit -lTECkit
+LIBS += -L$$_PRO_FILE_PWD_/teckit -lTECkit \
+        -L$$_PRO_FILE_PWD_/hunspell -llibhunspell
 
 CONFIG(debug, debug|release) {
     DEFINES -= QT_NO_DEBUG_OUTPUT
@@ -44,4 +45,5 @@ OTHER_FILES += \
     doc/guide.htm \
     doc/css/style.css \
     doc/css/normalize.css \
-    doc/mollana-cheatsheet.tex
+    doc/mollana-cheatsheet.tex \
+    installer/README.txt
