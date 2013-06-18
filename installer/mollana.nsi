@@ -69,6 +69,11 @@ Section "MainSection" SEC01
   File "${QT_DIRECTORY}\plugins\platforms\qwindows.dll"
   File "${QT_DIRECTORY}\plugins\platforms\qminimal.dll"
   
+  SetOutPath "$INSTDIR\dict"
+  File "..\dict\mollana-urdu.aff"
+  File "..\dict\mollana-urdu.dic"
+  File "..\dict\mollana-urdu-custom.txt"
+
   SetOutPath "$INSTDIR\doc"
   File "..\doc\guide.htm"
   File "..\doc\mollana-cheatsheet.pdf"
