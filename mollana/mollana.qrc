@@ -1,0 +1,27 @@
+<RCC>
+  <qresource prefix="/maps"/>
+  <qresource prefix="/icons">
+    <file>images/new.png</file>
+    <file>images/shut_down.png</file>
+    <file>images/copy_paste.png</file>
+    <file>images/cut.png</file>
+    <file>images/phone_book_edit.png</file>
+    <file>images/accept_page.png</file>
+    <file>images/refresh_page.png</file>
+    <file>images/help_balloon.png</file>
+    <file>images/help.png</file>
+    <file>images/add_to_open_folder.png</file>
+    <file>images/save.png</file>
+    <file>images/transfer.png</file>
+    <file>images/blue_arrow_down.png</file>
+    <file>images/blue_arrow_up.png</file>
+    <file>images/add_page.png</file>
+    <file>images/office_folders.png</file>
+    <file>images/open_folder_info.png</file>
+    <file>images/search_page.png</file>
+    <file>images/text_page.png</file>
+    <file>images/chalk_board.png</file>
+    <file>images/mollana.png</file>
+    <file>images/mollana64.png</file>
+  </qresource>
+</RCC>

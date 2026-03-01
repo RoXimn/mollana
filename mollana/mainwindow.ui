@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>mlMainWindow</class>
- <widget class="QMainWindow" name="mlMainWindow">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -18,15 +18,39 @@
   </property>
   <property name="font">
    <font>
-    <family>Tahoma</family>
+    <family>Noto Nastaliq Urdu</family>
+    <pointsize>24</pointsize>
    </font>
   </property>
   <property name="windowTitle">
    <string>Mollana</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="mollana.qrc">
+   <iconset>
     <normaloff>:/icons/png32/mollana64.png</normaloff>:/icons/png32/mollana64.png</iconset>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QListWidget {
+	background-color: #f0f0f0;
+	padding: 2px;
+}
+/* Style for normal items */
+QListWidget::item {
+	background-color: white;
+	padding: 2px;
+	margin: 2px;
+	border-radius: 4px;
+}
+/* Style for hovered items */
+QListWidget::item:hover {
+	background-color: #e0e0e0;
+}
+/* Style for selected items */
+QListWidget::item:selected {
+	background-color: #4CAF50;
+	color: white;
+	font-weight: bold
+}</string>
   </property>
   <property name="iconSize">
    <size>
@@ -52,10 +76,10 @@
      <number>0</number>
     </property>
     <item>
-     <widget class="mlTextEditor" name="tbxEditor">
+     <widget class="TextEditor" name="tbxEditor">
       <property name="font">
        <font>
-        <family>Palatino Linotype</family>
+        <family>Calibri</family>
         <pointsize>24</pointsize>
        </font>
       </property>
@@ -69,7 +93,7 @@
      <x>0</x>
      <y>0</y>
      <width>640</width>
-     <height>19</height>
+     <height>33</height>
     </rect>
    </property>
    <property name="font">
@@ -79,7 +103,7 @@
     </font>
    </property>
    <property name="contextMenuPolicy">
-    <enum>Qt::NoContextMenu</enum>
+    <enum>Qt::ContextMenuPolicy::NoContextMenu</enum>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
@@ -144,7 +168,7 @@
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <property name="contextMenuPolicy">
-    <enum>Qt::NoContextMenu</enum>
+    <enum>Qt::ContextMenuPolicy::NoContextMenu</enum>
    </property>
    <property name="windowTitle">
     <string>Standard</string>
@@ -153,7 +177,7 @@
     <bool>false</bool>
    </property>
    <property name="toolButtonStyle">
-    <enum>Qt::ToolButtonTextUnderIcon</enum>
+    <enum>Qt::ToolButtonStyle::ToolButtonTextUnderIcon</enum>
    </property>
    <property name="floatable">
     <bool>true</bool>
@@ -173,7 +197,7 @@
     </font>
    </property>
    <property name="contextMenuPolicy">
-    <enum>Qt::NoContextMenu</enum>
+    <enum>Qt::ContextMenuPolicy::NoContextMenu</enum>
    </property>
   </widget>
   <widget class="QDockWidget" name="dckUnicodeView">
@@ -186,11 +210,8 @@
    <property name="minimumSize">
     <size>
      <width>100</width>
-     <height>100</height>
+     <height>148</height>
     </size>
-   </property>
-   <property name="features">
-    <set>QDockWidget::AllDockWidgetFeatures</set>
    </property>
    <property name="windowTitle">
     <string>Unicode View</string>
@@ -224,7 +245,7 @@
         </font>
        </property>
        <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
+        <enum>Qt::LayoutDirection::RightToLeft</enum>
        </property>
       </widget>
      </item>
@@ -234,7 +255,7 @@
   <action name="actionNew">
    <property name="icon">
     <iconset resource="mollana.qrc">
-     <normaloff>:/icons/png32/new.png</normaloff>:/icons/png32/new.png</iconset>
+     <normaloff>:/icons/images/new.png</normaloff>:/icons/images/new.png</iconset>
    </property>
    <property name="text">
     <string>&amp;New</string>
@@ -249,7 +270,7 @@
   <action name="actionOpen">
    <property name="icon">
     <iconset resource="mollana.qrc">
-     <normaloff>:/icons/png32/add_to_open_folder.png</normaloff>:/icons/png32/add_to_open_folder.png</iconset>
+     <normaloff>:/icons/images/add_to_open_folder.png</normaloff>:/icons/images/add_to_open_folder.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Open</string>
@@ -264,7 +285,7 @@
   <action name="actionSave">
    <property name="icon">
     <iconset resource="mollana.qrc">
-     <normaloff>:/icons/png32/save.png</normaloff>:/icons/png32/save.png</iconset>
+     <normaloff>:/icons/images/save.png</normaloff>:/icons/images/save.png</iconset>
    </property>
    <property name="text">
     <string>Save</string>
@@ -279,7 +300,7 @@
   <action name="actionSaveAs">
    <property name="icon">
     <iconset resource="mollana.qrc">
-     <normaloff>:/icons/png32/transfer.png</normaloff>:/icons/png32/transfer.png</iconset>
+     <normaloff>:/icons/images/transfer.png</normaloff>:/icons/images/transfer.png</iconset>
    </property>
    <property name="text">
     <string>Save As</string>
@@ -299,7 +320,7 @@
   <action name="actionQuit">
    <property name="icon">
     <iconset resource="mollana.qrc">
-     <normaloff>:/icons/png32/shut_down.png</normaloff>:/icons/png32/shut_down.png</iconset>
+     <normaloff>:/icons/images/shut_down.png</normaloff>:/icons/images/shut_down.png</iconset>
    </property>
    <property name="text">
     <string>Quit</string>
@@ -317,7 +338,7 @@
    </property>
    <property name="icon">
     <iconset resource="mollana.qrc">
-     <normaloff>:/icons/png32/blue_arrow_down.png</normaloff>:/icons/png32/blue_arrow_down.png</iconset>
+     <normaloff>:/icons/images/blue_arrow_down.png</normaloff>:/icons/images/blue_arrow_down.png</iconset>
    </property>
    <property name="text">
     <string>Undo</string>
@@ -332,7 +353,7 @@
    </property>
    <property name="icon">
     <iconset resource="mollana.qrc">
-     <normaloff>:/icons/png32/blue_arrow_up.png</normaloff>:/icons/png32/blue_arrow_up.png</iconset>
+     <normaloff>:/icons/images/blue_arrow_up.png</normaloff>:/icons/images/blue_arrow_up.png</iconset>
    </property>
    <property name="text">
     <string>Redo</string>
@@ -347,7 +368,7 @@
    </property>
    <property name="icon">
     <iconset resource="mollana.qrc">
-     <normaloff>:/icons/png32/copy_paste.png</normaloff>:/icons/png32/copy_paste.png</iconset>
+     <normaloff>:/icons/images/copy_paste.png</normaloff>:/icons/images/copy_paste.png</iconset>
    </property>
    <property name="text">
     <string>Copy</string>
@@ -362,7 +383,7 @@
    </property>
    <property name="icon">
     <iconset resource="mollana.qrc">
-     <normaloff>:/icons/png32/cut.png</normaloff>:/icons/png32/cut.png</iconset>
+     <normaloff>:/icons/images/cut.png</normaloff>:/icons/images/cut.png</iconset>
    </property>
    <property name="text">
     <string>Cut</string>
@@ -377,7 +398,7 @@
    </property>
    <property name="icon">
     <iconset resource="mollana.qrc">
-     <normaloff>:/icons/png32/phone_book_edit.png</normaloff>:/icons/png32/phone_book_edit.png</iconset>
+     <normaloff>:/icons/images/phone_book_edit.png</normaloff>:/icons/images/phone_book_edit.png</iconset>
    </property>
    <property name="text">
     <string>Paste</string>
@@ -389,7 +410,7 @@
   <action name="actionSelectAll">
    <property name="icon">
     <iconset resource="mollana.qrc">
-     <normaloff>:/icons/png32/accept_page.png</normaloff>:/icons/png32/accept_page.png</iconset>
+     <normaloff>:/icons/images/accept_page.png</normaloff>:/icons/images/accept_page.png</iconset>
    </property>
    <property name="text">
     <string>Select All</string>
@@ -401,7 +422,7 @@
   <action name="actionGotoLine">
    <property name="icon">
     <iconset resource="mollana.qrc">
-     <normaloff>:/icons/png32/search_page.png</normaloff>:/icons/png32/search_page.png</iconset>
+     <normaloff>:/icons/images/search_page.png</normaloff>:/icons/images/search_page.png</iconset>
    </property>
    <property name="text">
     <string>Goto Line</string>
@@ -419,7 +440,7 @@
    </property>
    <property name="icon">
     <iconset resource="mollana.qrc">
-     <normaloff>:/icons/png32/refresh_page.png</normaloff>:/icons/png32/refresh_page.png</iconset>
+     <normaloff>:/icons/images/refresh_page.png</normaloff>:/icons/images/refresh_page.png</iconset>
    </property>
    <property name="text">
     <string>Word Wrap</string>
@@ -440,7 +461,7 @@
    </property>
    <property name="icon">
     <iconset resource="mollana.qrc">
-     <normaloff>:/icons/png32/office_folders.png</normaloff>:/icons/png32/office_folders.png</iconset>
+     <normaloff>:/icons/images/office_folders.png</normaloff>:/icons/images/office_folders.png</iconset>
    </property>
    <property name="text">
     <string>Unicode View</string>
@@ -455,7 +476,7 @@
   <action name="actionAbout">
    <property name="icon">
     <iconset resource="mollana.qrc">
-     <normaloff>:/icons/png32/help_balloon.png</normaloff>:/icons/png32/help_balloon.png</iconset>
+     <normaloff>:/icons/images/help_balloon.png</normaloff>:/icons/images/help_balloon.png</iconset>
    </property>
    <property name="text">
     <string>About</string>
@@ -467,7 +488,7 @@
   <action name="actionEditorFont">
    <property name="icon">
     <iconset resource="mollana.qrc">
-     <normaloff>:/icons/png32/text_page.png</normaloff>:/icons/png32/text_page.png</iconset>
+     <normaloff>:/icons/images/text_page.png</normaloff>:/icons/images/text_page.png</iconset>
    </property>
    <property name="text">
     <string>Editor Font</string>
@@ -479,7 +500,7 @@
   <action name="actionUnicodeViewFont">
    <property name="icon">
     <iconset resource="mollana.qrc">
-     <normaloff>:/icons/png32/chalk_board.png</normaloff>:/icons/png32/chalk_board.png</iconset>
+     <normaloff>:/icons/images/chalk_board.png</normaloff>:/icons/images/chalk_board.png</iconset>
    </property>
    <property name="text">
     <string>Unicode View</string>
@@ -494,7 +515,7 @@
   <action name="actionGettingStarted">
    <property name="icon">
     <iconset resource="mollana.qrc">
-     <normaloff>:/icons/png32/help.png</normaloff>:/icons/png32/help.png</iconset>
+     <normaloff>:/icons/images/help.png</normaloff>:/icons/images/help.png</iconset>
    </property>
    <property name="text">
     <string>Getting Started</string>
@@ -506,7 +527,7 @@
   <action name="actionCheatSheet">
    <property name="icon">
     <iconset resource="mollana.qrc">
-     <normaloff>:/icons/png32/office_folders.png</normaloff>:/icons/png32/office_folders.png</iconset>
+     <normaloff>:/icons/images/office_folders.png</normaloff>:/icons/images/office_folders.png</iconset>
    </property>
    <property name="text">
     <string>Cheat Sheet</string>
@@ -518,7 +539,7 @@
   <action name="actionSpellChecker">
    <property name="icon">
     <iconset resource="mollana.qrc">
-     <normaloff>:/icons/png32/chalk_board.png</normaloff>:/icons/png32/chalk_board.png</iconset>
+     <normaloff>:/icons/images/chalk_board.png</normaloff>:/icons/images/chalk_board.png</iconset>
    </property>
    <property name="text">
     <string>Spell Checker</string>
@@ -536,9 +557,9 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>mlTextEditor</class>
+   <class>TextEditor</class>
    <extends>QPlainTextEdit</extends>
-   <header>mltexteditor.h</header>
+   <header>texteditor</header>
   </customwidget>
  </customwidgets>
  <resources>
