@@ -11,11 +11,12 @@ dependencies = [
     "strenum>=0.4.15",
     "symspellpy>=6.9.0",
     "tomlkit>=0.13.3",
+    "spacy>=3.8.14",
+    "unicodedataplus>=16.0.0.post1",
 ]
 
 [dependency-groups]
 dev = [
-    "fast-langdetect>=1.0.0",
     "pyinstaller>=6.17.0",
     "pytest>=9.0.2",
 ]
