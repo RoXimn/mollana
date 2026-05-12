@@ -13,6 +13,8 @@ dependencies = [
     "tomlkit>=0.13.3",
     "spacy>=3.8.14",
     "unicodedataplus>=16.0.0.post1",
+    "selectolax>=0.4.8",
+    "pylatexenc>=2.10",
 ]
 
 [dependency-groups]

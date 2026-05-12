@@ -9,8 +9,11 @@
 import sys
 from collections import Counter
 from pathlib import Path
+import xml.etree.ElementTree as ET
 
 import spacy
+from selectolax.parser import HTMLParser
+from pylatexenc.latex2text import LatexNodes2Text
 import unicodedataplus as ud
 from symspellpy import SymSpell, Verbosity
 from PySide6.QtCore import (
@@ -40,38 +43,36 @@ def scriptScore(token, targetScript: str = 'ARABIC'):
     # Normalize target script to uppercase for comparison
     targetScript = targetScript.upper()
 
+    ArabicVowels = "\u064B\u064C\u064D\u064E\u064F\u0650\u0651\u0652"
     for ch in token:
-        if targetScript == ud.script(ch).upper():
+        script = ud.script(ch).upper() if ch not in ArabicVowels else 'ARABIC'
+        if script in (targetScript, "INHERITED"):
             matchCount += 1
 
     return matchCount / len(token)
 
 
 # ******************************************************************************
-def tokenize(text: str):
-    nlp = spacy.blank('ur')
-
-    # Spacy based tokenization
-    doc = nlp(text)
-    return  doc
+def preprocessXml(xmlContent):
+    root = ET.fromstring(xmlContent)
+    texts = [elem.text for elem in root.iter() if elem.text]
+    print(len(texts))
+    return " ".join(texts)
 
 
 # ******************************************************************************
-def tokens2Vocab(doc, isAlpha: bool = True, scoreThreshold: float = 0.9) -> tuple[Counter, int]:
+def preprocessHtml(htmlContent):
+    tree = HTMLParser(htmlContent)
+    for tag in tree.css('script, style'):
+        tag.decompose()
+    return tree.body.text(separator=' ', strip=True)
 
-    # words = [normalizeUrduChars(token.text.strip()) for token in doc if (isAlpha and token.is_alpha) and scriptScore(token.text) >= scoreThreshold]
-    # words =
-    # for token in doc:
-    #     w = normalizeNonChars(normalizeUrduChars(token.text.strip()))
-    #     if w and scriptScore(w) > 0.0:
-    #         words.append(w)
-    words = [normalizeWhiteSpace(normalizeNonChars(normalizeUrduChars(token.text.strip()))) for token in doc if scriptScore(token.text) > 0.0]
-    words = [w for w in words if w]
-    wordCount = len(words)
 
-    vocab = Counter(words)
+# ******************************************************************************
+def preprocessLatex(latexContent):
+    textCleaner = LatexNodes2Text()
+    return textCleaner.latex_to_text(latexContent)
 
-    return vocab, wordCount
 
 # ******************************************************************************
 URDU_VARIANT_MAP = {
@@ -431,16 +432,11 @@ LIGATURE_MAP = {
 URDU_REVERSAL_LOOKUP = {v: base for base, variants in URDU_VARIANT_MAP.items() for v in variants}
 
 def normalizeUrduChars(text):
-    """
-    Replaces presentation/positional forms with standard Urdu tokens
-    using the built-in map function for performance.
-    """
+    """Replaces ligatures, presentation, positional and some compositional forms with base Urdu characters"""
     if not text:
         return ""
 
     # Step 1: Handle Multi-character Ligatures
-    # We use a regex for efficiency if the ligature list grows,
-    # but for a small set, a simple loop or multiple .replace() works well.
     for ligature, replacement in LIGATURE_MAP.items():
         text = text.replace(ligature, replacement)
 
@@ -453,6 +449,7 @@ def normalizeUrduChars(text):
     return text
 
 def removeMarks(text):
+    """Remove all diacritical marks, identified using Unicode classification"""
     # Selective Diacritic Removal (NFD)
     # NFD is used to isolate marks, then filter them out.
     # Marks to preserve:
@@ -464,11 +461,17 @@ def removeMarks(text):
     token = "".join([c for c in nfdForm if c in preservedMarks or not ud.combining(c)])
     return ud.normalize('NFC', token)
 
+def isPunctuation(char):
+    return ud.category(char).startswith('P')
+
 def removePunctuation(text):
-    return "".join([c for c in text if not ud.category(c).startswith('P')])
+    return "".join([c for c in text if not isPunctuation(c)])
+
+def isDigit(char):
+    return ud.category(char) == 'Nd'
 
 def removeDigits(text):
-    return "".join([c for c in text if not ud.category(c) == 'Nd'])
+    return "".join([c for c in text if not isDigit(c)])
 
 def normalizeNonChars(text):
     return removePunctuation(removeDigits(removeMarks(text)))
@@ -476,55 +479,67 @@ def normalizeNonChars(text):
 def normalizeWhiteSpace(text):
     return  " ".join(text.split())
 
+def normalize(text):
+    return normalizeWhiteSpace(normalizeNonChars(normalizeUrduChars(text)))
+
+
 # ******************************************************************************
-def normalize2Urdu(token: str) -> str:
-    """
-    Standardizes Urdu tokens by:
-    1. Mapping positional variants (Initial/Medial/Final forms) to base characters.
-    2. Converting Arabic/Persian range characters to Urdu standard block.
-    3. Removing diacritics and non-spacing marks.
-    """
-    if not token:
-        return token
+class Vocabulary():
+    def __init__(self, referenceVocabulary=None, sep='$'):
+        self.symSpell = SymSpell()
+        if referenceVocabulary:
+            self.loadReference(referenceVocabulary, sep)
+        self.vocab = Counter()
 
-    # 1. Compatibility Decomposition (NFKC)
-    # This automatically converts most positional variants (e.g., ﻒ, ﻘ, ﻂ)
-    # from the Presentation Forms blocks to their standard Arabic script bases.
-    token = ud.normalize('NFKC', token)
+    def loadReference(self, filename, sep='$'):
+        self.symSpell.load_dictionary(filename, 0, 1, separator=sep, encoding='utf8')
 
-    # 2. Urdu-Specific Base Character Mapping
-    # After NFKC, some chars might be in the 'Arabic' block (0643).
-    # We must force them into the 'Urdu' preferred block.
-    urduBaseMapping = {
-        # Kaf variants
-        '\u0643': '\u06a9', # Arabic Kaf -> Urdu Kaf
-        '\u06a8': '\u06a9', # Swash Kaf -> Urdu Kaf
+    def exists(self, word):
+        """Check if word exists in reference vocabulary"""
+        suggestions = self.symSpell.lookup(word, Verbosity.CLOSEST, max_edit_distance=0)
+        return len(suggestions) > 0
 
-        # Yeh variants
-        '\u064a': '\u06cc', # Arabic Yeh -> Urdu Chooti Yeh
-        '\u0649': '\u06cc', # Alif Maqsura -> Urdu Chooti Yeh
+    def suggest(self, word, distance=1):
+        """Get suggestions from reference vocabulary"""
+        return self.symSpell.lookup(word, Verbosity.CLOSEST, max_edit_distance=distance)
 
-        # Heh variants
-        '\u0647': '\u06c1', # Arabic Heh -> Urdu Gol Heh
-        '\u0629': '\u06c3', # Arabic Ta Marbuta -> Urdu Ta Marbuta
+    def extract(self, text, filterKnown=True):
+        """Extract word-frequency pairs from given text"""
+        def cleanToken(token):
+            txt = token.text
+            if scriptScore(txt) == 0.0:
+                return ''
+            txt = normalize(txt)
+            return txt
 
-        # Zero-Width non-joiners (often used in positional variants)
-        '\u200c': '',
-    }
+        nlp = spacy.blank('ur')
+        doc = nlp(text)
+        words = [cleanToken(token) for token in doc]
+        words = list(filter(None, words))
+        words = [w for w in words if filterKnown and not self.exists(w)]
+        self.vocab.update(Counter(words))
 
-    for target, replacement in urduBaseMapping.items():
-        token = token.replace(target, replacement)
+    @property
+    def words(self):
+        return [w for w, f in self.vocab.most_common()]
 
-    # 3. Selective Diacritic Removal (NFD)
-    # We use NFD to isolate marks, then filter them out.
-    # Marks to preserve:
-    # U+0653 (Madda - for آ)
-    # U+0654 (Hamza Above - for ئ / ؤ)
-    preserved_marks = {'\u0653', '\u0654'}
-    nfd_form = ud.normalize('NFD', token)
-    token = "".join([c for c in nfd_form if not ud.combining(c) or c in preserved_marks])
+    def save(self, filename, sep='$'):
+        """Saves word-frequency pairs to a SymSpell file"""
+        with open(filename, "w", encoding="utf-8") as sym:
+            for i, (w, f) in enumerate(self.vocab.most_common()):
+                sym.write(f"{w}{sep}{f}\n")
 
-    return ud.normalize('NFC', token)
+    def load(self, filename, sep='$'):
+        """Loads word-frequency pairs from a SymSpell file"""
+        counter = Counter()
+        with open(filename, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    # Split by the specific '$' delimiter
+                    word, freq = line.rsplit(sep, 1)
+                    counter[word] = int(freq)
+        self.vocab = counter
 
 
 # ******************************************************************************
@@ -543,10 +558,7 @@ class SpellTextEdit(QPlainTextEdit):
     def __init__(self, *args):
         QPlainTextEdit.__init__(self, *args)
 
-        # Default dictionary based on the current locale.
-        self.dict = SymSpell()
-        dictionaryPath = "Urdu5k.sym"
-        self.dict.load_dictionary(dictionaryPath, 0, 1, separator="$", encoding='utf8')
+        self.dictionary: Vocabulary | None = None
 
         doc = self.document()
         option = doc.defaultTextOption()
@@ -555,7 +567,10 @@ class SpellTextEdit(QPlainTextEdit):
         option.setFlags(QTextOption.ShowTabsAndSpaces)
         doc.setDefaultTextOption(option)
         self.sourceHighlighter = WordsHighlighter(doc)
-        self.sourceHighlighter.setDict(self.dict)
+
+    def setDict(self, dictionary: Vocabulary | None):
+        self.dictionary = dictionary
+        self.sourceHighlighter.setDict(self.dictionary)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.RightButton:
@@ -580,19 +595,21 @@ class SpellTextEdit(QPlainTextEdit):
         # Check if the selected word is misspelled and offer spelling
         # suggestions if it is.
         if self.textCursor().hasSelection():
-            text = self.textCursor().selectedText()
-            suggestions = self.dict.lookup(text, Verbosity.CLOSEST, max_edit_distance=2)
-            if suggestions:
-                mnuSpellings = QMenu('Spelling Suggestions')
-                for suggestion in suggestions:
-                    action = SpellAction(suggestion.term, mnuSpellings)
-                    action.correct.connect(self.correctWord)
-                    mnuSpellings.addAction(action)
-                # Only add the spelling suggests to the menu if there are
-                # suggestions.
-                if len(mnuSpellings.actions()) != 0:
-                    mnuPopup.insertSeparator(mnuPopup.actions()[0])
-                    mnuPopup.insertMenu(mnuPopup.actions()[0], mnuSpellings)
+            if self.dictionary is not None:
+                token = self.textCursor().selectedText()
+                word = normalize(token)
+                suggestions = self.dictionary.suggest(word, distance=2)
+                if suggestions:
+                    mnuSpellings = QMenu('Spelling Suggestions')
+                    for suggestion in suggestions:
+                        action = SpellAction(suggestion.term, mnuSpellings)
+                        action.correct.connect(self.correctWord)
+                        mnuSpellings.addAction(action)
+                    # Only add the spelling suggests to the menu if there are
+                    # suggestions.
+                    if len(mnuSpellings.actions()) != 0:
+                        mnuPopup.insertSeparator(mnuPopup.actions()[0])
+                        mnuPopup.insertMenu(mnuPopup.actions()[0], mnuSpellings)
 
         mnuPopup.exec(event.globalPos())
 
@@ -624,16 +641,15 @@ class WordsHighlighter(QSyntaxHighlighter):
         self.whitespacePattern = QRegularExpression(r"\s")
 
         self.errorFormat = QTextCharFormat()
-        # self.errorFormat.setUnderlineStyle(QTextCharFormat.WaveUnderline)
         self.errorFormat.setUnderlineColor(Qt.red)
         self.errorFormat.setUnderlineStyle(QTextCharFormat.SpellCheckUnderline)
 
         self.symSpell = SymSpell()
 
-        self.dict = None
+        self.dictionary: Vocabulary | None = None
 
-    def setDict(self, dict):
-        self.dict = dict
+    def setDict(self, dictionary: Vocabulary | None):
+        self.dictionary = dictionary
 
     def highlightBlock(self, text):
         # Match and apply color to the visible whitespace symbols
@@ -642,22 +658,21 @@ class WordsHighlighter(QSyntaxHighlighter):
             match = matches.next()
             self.setFormat(match.capturedStart(), match.capturedLength(), self.whiteSpceFormat)
 
-        if not self.dict:
+        if self.dictionary is None:
             return
 
-        tokens = tokenize(text)
-        # n = 0
-        for token in tokens:
-            # if not token.is_alpha:
-            #     continue
-            suggestions = self.dict.lookup(token.text, Verbosity.CLOSEST, max_edit_distance=0)
-            if not suggestions:
-            # if token.is_alpha:
-            #     self.errorFormat.setUnderlineColor(QColor("red"))
-            # else:
-            #     self.errorFormat.setUnderlineColor(QColor(LINE_COLORS[n]))
-            #     n = (n + 1) % len(LINE_COLORS)
-                self.setFormat(token.idx, len(token), self.errorFormat)
+        nlp = spacy.blank('ur')
+        doc = nlp(text)
+        for token in doc:
+            word = normalize(token.text)
+
+            # Skip
+            if self.dictionary.exists(word):
+                continue
+            if all(isPunctuation(char) for char in word):
+                continue
+
+            self.setFormat(token.idx, len(token), self.errorFormat)
 
 # ******************************************************************************
 class Ui_MainWindow(object):
@@ -731,31 +746,33 @@ class Ui_MainWindow(object):
         urduFont.setPointSize(32)
         self.tbxSourceText.setFont(urduFont)
 
-        self.verticalLayout.addWidget(self.tbxSourceText)
+        self.verticalLayout.addWidget(self.tbxSourceText, stretch=3)
 
-        self.lstWords = QListWidget(self.tbNew)
+        self.lstWords = VocabCloud(self.tbNew)
         self.lstWords.setObjectName(u"lstWords")
-        self.lstWords.setFont(urduFont)
-        self.lstWords.setLayoutDirection(Qt.RightToLeft)
-        self.lstWords.setSelectionMode(QAbstractItemView.SingleSelection)
-        self.lstWords.setAlternatingRowColors(True)
-        self.lstWords.setStyleSheet("""
-            QListWidget { outline: 0; }
-            QListWidget::item:selected {
-                background-color: #888;
-            }
-            QListWidget::item:hover {
-                background-color: #CCC;
-                color: #fff;
-            }
-        """)
+        # self.lstWords = QListWidget(self.tbNew)
+        # self.lstWords.setObjectName(u"lstWords")
+        # self.lstWords.setFont(urduFont)
+        # self.lstWords.setLayoutDirection(Qt.RightToLeft)
+        # self.lstWords.setSelectionMode(QAbstractItemView.SingleSelection)
+        # self.lstWords.setAlternatingRowColors(True)
+        # self.lstWords.setStyleSheet("""
+        #     QListWidget { outline: 0; }
+        #     QListWidget::item:selected {
+        #         background-color: #888;
+        #     }
+        #     QListWidget::item:hover {
+        #         background-color: #CCC;
+        #         color: #fff;
+        #     }
+        # """)
 
-        self.verticalLayout.addWidget(self.lstWords)
+        self.verticalLayout.addWidget(self.lstWords, stretch=1)
 
         self.tcWordComposition = TagCloud(self.tbNew)
         self.tcWordComposition.setObjectName(u"tcWordComposition")
 
-        self.verticalLayout.addWidget(self.tcWordComposition)
+        self.verticalLayout.addWidget(self.tcWordComposition, stretch=0)
 
         self.tabWidget.addTab(self.tbNew, "New")
         self.tbMerge = QWidget()
@@ -786,13 +803,16 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        self.vocabulary = Vocabulary()
+        self.ui.tbxSourceText.setDict(self.vocabulary)
+
         self.setStyleSheet("""
             #Tag { background-color: #e1e4e8; border-radius: 4px; border: 1px solid #ccc; }
             #Tag:hover { background-color: #d1d5da; }
         """)
 
         self.ui.btnSelectSource.clicked.connect(self.onOpenFile)
-        self.ui.lstWords.currentItemChanged.connect(self.onSelectionChanged)
+        self.ui.lstWords.selectionChanged.connect(self.onSelectionChanged)
 
     # ******************************************************************************
     def onOpenFile(self):
@@ -807,9 +827,9 @@ class MainWindow(QMainWindow):
             self.loadInputFile(filePath)
 
     # ******************************************************************************
-    def onSelectionChanged(self, current, previous):
-        if current:
-            self.ui.tcWordComposition.inputField.setText(current.text())
+    def onSelectionChanged(self, text):
+        if text:
+            self.ui.tcWordComposition.inputField.setText(text)
 
     # ******************************************************************************
     def loadInputFile(self, filePath):
@@ -818,30 +838,34 @@ class MainWindow(QMainWindow):
         sourceFilePath = Path(filePath)
         assert sourceFilePath.exists(), "Source file does not exist"
 
+        PREPROCESSORS = {
+            ".xml": preprocessXml,
+            ".tex": preprocessLatex,
+            ".html": preprocessHtml,
+            ".htm": preprocessHtml,
+        }
+
         # Load source text and trim to tokenizer limit
-        sourceTxt = sourceFilePath.read_text(encoding='utf8')
+        ext = sourceFilePath.suffix.lower()
+        rawContent = sourceFilePath.read_text(encoding='utf-8-sig')
+        sourceTxt = PREPROCESSORS[ext](rawContent) if ext in PREPROCESSORS else rawContent
+
         if len(sourceTxt) > 1_000_000:
             sourceTxt = sourceTxt[:1_000_000]
             print("Trimming input text size to 1,000,000")
-        else:
-            print(f"Input text size: {len(sourceTxt):,}")
 
-        doc = tokenize(sourceTxt)
-        tokenCount = len(doc)
-        vocabulary, wordCount = tokens2Vocab(doc)
-        vocabCount = len(vocabulary)
-        print(f"Totals:: {tokenCount=:,} {wordCount=:,} {vocabCount=:,}")
+        self.vocabulary.extract(sourceTxt)
 
         # Update UI
         self.ui.leSourceFile.setText(filePath)
-        self.ui.tbxSourceText.setPlainText(sourceTxt)
-        self.ui.lstWords.clear()
-        self.ui.lstWords.addItems([w for w, f in vocabulary.most_common()])
+        self.ui.tbxSourceText.setPlainText(rawContent)
+        self.ui.lstWords.clearTags()
+        self.ui.lstWords.addTags(self.vocabulary.words)
         self.ui.tcWordComposition.inputField.clear()
 
 # Read a text file.
 # Tokenize the contents.
-# Extract all Urdu the words.
+# Extract all Urdu words.
 # Optionally use a dictionary to screen new words.
 # Allow the to edit the new words.
 # Reparse the input document for word frequency.
@@ -931,21 +955,14 @@ class FlowLayout(QLayout):
             lineHeight = max(lineHeight, itemH)
         return y + lineHeight - rect.y()
 
-        # x, y, lineHeight = rect.x(), rect.y(), 0
-        # spacing = 2
-        # for item in self._itemsList:
-        #     next_x = x + item.sizeHint().width() + spacing
-        #     if next_x - spacing > rect.right() and lineHeight > 0:
-        #         x, y, lineHeight = rect.x(), y + lineHeight + spacing, 0
-        #     if not test_only:
-        #         item.setGeometry(QRect(QPoint(x, y), item.sizeHint()))
-        #     x = x + item.sizeHint().width() + spacing
-        #     lineHeight = max(lineHeight, item.sizeHint().height())
-        # return y + lineHeight - rect.y()
 
 # ******************************************************************************
 class TagWidget(QFrame):
     """Single tag bubble with a remove button."""
+
+    # --------------------------------------------------------------------------
+    clicked = Signal(str)
+
     # --------------------------------------------------------------------------
     def __init__(self, text, parent=None):
         super().__init__(parent)
@@ -954,14 +971,73 @@ class TagWidget(QFrame):
         layout.setContentsMargins(10, 4, 10, 4)
 
         self.label = QLabel(text)
-        # self.btnClose = QPushButton("×")
-        # self.btnClose.setFixedSize(16, 16)
-        # self.btnClose.setCursor(Qt.PointingHandCursor)
-        # self.btnClose.setStyleSheet("border: none; font-weight: bold; background: transparent;")
+        urduFont = QFont()
+        urduFont.setFamilies(["Noto Naskh Arabic", "Noto Sans"])
+        urduFont.setPointSize(16)
+        self.label.setFont(urduFont)
 
         layout.addWidget(self.label)
-        # layout.addWidget(self.btnClose)
-        # self.btnClose.clicked.connect(self.deleteLater)
+
+    # --------------------------------------------------------------------------
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.clicked.emit(self.label.text())
+        super().mousePressEvent(event)
+
+
+# ******************************************************************************
+class VocabCloud(QWidget):
+    """Main container with word cloud."""
+    # --------------------------------------------------------------------------
+    selectionChanged = Signal(str)
+
+    # --------------------------------------------------------------------------
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        mainLayout = QVBoxLayout(self)
+        self.label = QLabel()
+        self.label.setLayoutDirection(Qt.RightToLeft)
+        self.label.setAlignment(Qt.AlignRight)
+
+        self.container = QWidget()
+        self.container.setLayoutDirection(Qt.RightToLeft)
+        self.flowLayout = FlowLayout(self.container)
+        self.flowLayout.setSpacing(8)
+
+        mainLayout.addWidget(self.label)
+        mainLayout.addWidget(self.container)
+        mainLayout.addStretch()
+
+    # --------------------------------------------------------------------------
+    def addTags(self, words):
+        if words:
+            self.clearTags(self.flowLayout)
+            for word in words:
+                widget = TagWidget(word)
+                widget.clicked.connect(self.onTagClicked)
+
+                self.flowLayout.addWidget(widget)
+
+        self.label.setText(f"Count: {self.flowLayout.count()}")
+
+    # --------------------------------------------------------------------------
+    def clearTags(self, layout=None):
+        if layout is not None:
+            while self.flowLayout.count():
+                item = self.flowLayout.takeAt(0)
+                widget = item.widget()
+                if widget is not None:
+                    widget.deleteLater()
+                else:
+                    self.clearTags(item.layout())
+
+        self.label.setText(f"Count: {self.flowLayout.count()}")
+
+    # --------------------------------------------------------------------------
+    def onTagClicked(self, text):
+        self.selectionChanged.emit(text)
+
 
 # ******************************************************************************
 class TagCloud(QWidget):
@@ -972,7 +1048,7 @@ class TagCloud(QWidget):
         mainLayout = QVBoxLayout(self)
         self.inputField = QLineEdit()
         urduFont = QFont()
-        urduFont.setFamilies([u"Noto Naskh Arabic"])
+        urduFont.setFamilies(["Noto Naskh Arabic", "Noto Sans"])
         urduFont.setPointSize(18)
         self.inputField.setFont(urduFont)
         self.inputField.setReadOnly(True)
@@ -990,20 +1066,23 @@ class TagCloud(QWidget):
 
     # --------------------------------------------------------------------------
     def addTags(self, text):
+        # self.inputField.setText(text)
         if text:
             self.clearTags(self.flowLayout)
             for ch in text:
                 widget = TagWidget(f"U+{ord(ch):04X}")
-                widget.setToolTip(ud.name(ch, "NDEF"))
                 uniCategory = ud.category(ch)
+                widget.setToolTip(f"{ud.name(ch, 'NDEF')} [{uniCategory}]")
                 # Use major category for color selection
                 bgColor = COLORS[uniCategory[0]]
                 widget.setStyleSheet(f"background-color : {bgColor};")
+                widget.clicked.connect(lambda: print('clikced!'))
 
                 self.flowLayout.addWidget(widget)
 
     # --------------------------------------------------------------------------
     def clearTags(self, layout=None):
+        # self.inputField.clear()
         if layout is not None:
             while self.flowLayout.count():
                 item = self.flowLayout.takeAt(0)
