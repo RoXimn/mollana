@@ -7,26 +7,26 @@
 # Author:      Roximn <roximn148@gmail.com> Mar 2026
 # ******************************************************************************
 import sys
+import xml.etree.ElementTree as ET
 from collections import Counter
 from pathlib import Path
-import xml.etree.ElementTree as ET
 
 import spacy
-from selectolax.parser import HTMLParser
-from pylatexenc.latex2text import LatexNodes2Text
 import unicodedataplus as ud
+from pylatexenc.latex2text import LatexNodes2Text
+from selectolax.parser import HTMLParser
 from symspellpy import SymSpell, Verbosity
 from PySide6.QtCore import (
     QMetaObject, QPoint, QRect, QSize, Qt, QRegularExpression, QEvent, Signal
 )
 from PySide6.QtGui import (
     QFont, QTextOption, QSyntaxHighlighter, QTextCharFormat, QColor,
-    QMouseEvent, QTextCursor, QAction
+    QMouseEvent, QTextCursor, QAction, QKeyEvent
 )
 from PySide6.QtWidgets import (
-    QApplication, QHBoxLayout, QLabel, QLineEdit, QListWidget, QMenuBar,
+    QApplication, QHBoxLayout, QLabel, QLineEdit, QMenuBar,
     QPlainTextEdit, QPushButton, QStatusBar, QTabWidget, QVBoxLayout, QWidget,
-    QMainWindow, QFileDialog, QAbstractItemView, QMenu, QFrame, QLayout
+    QMainWindow, QFileDialog, QMenu, QFrame, QLayout, QScrollArea, QGridLayout, QDockWidget
 )
 
 
@@ -678,8 +678,8 @@ class WordsHighlighter(QSyntaxHighlighter):
 class Ui_MainWindow(object):
     # --------------------------------------------------------------------------
     def setupUi(self, parentWindow):
-        parentWindow.setObjectName(u"VocabMainWindow")
-        parentWindow.setWindowTitle("Vocabulary Editor")
+        parentWindow.setObjectName(u"LafzShanaasWindow")
+        parentWindow.setWindowTitle("Lafz Shanaas")
         parentWindow.resize(800, 600)
 
         self.centralwidget = QWidget(parentWindow)
@@ -748,6 +748,8 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addWidget(self.tbxSourceText, stretch=3)
 
+        self.scrollArea = QScrollArea()
+        self.scrollArea.setWidgetResizable(True)
         self.lstWords = VocabCloud(self.tbNew)
         self.lstWords.setObjectName(u"lstWords")
         # self.lstWords = QListWidget(self.tbNew)
@@ -767,7 +769,8 @@ class Ui_MainWindow(object):
         #     }
         # """)
 
-        self.verticalLayout.addWidget(self.lstWords, stretch=1)
+        self.scrollArea.setWidget(self.lstWords)
+        self.verticalLayout.addWidget(self.scrollArea, stretch=1)
 
         self.tcWordComposition = TagCloud(self.tbNew)
         self.tcWordComposition.setObjectName(u"tcWordComposition")
@@ -794,6 +797,91 @@ class Ui_MainWindow(object):
 
         QMetaObject.connectSlotsByName(parentWindow)
 
+
+# ******************************************************************************
+class UrduKeyboardDock(QDockWidget):
+    # Signal to send the character to the receiver
+    charClicked = Signal(str)
+    ctrlClicked = Signal(str)
+
+    def __init__(self, parent=None):
+        super().__init__("Urdu Keyboard", parent)
+
+        self.setAllowedAreas(Qt.BottomDockWidgetArea)
+        self.setFeatures(QDockWidget.DockWidgetMovable)
+
+        container = QWidget()
+        layout = QHBoxLayout(container)
+        layout.addStretch()
+
+        # Urdu alphabet in alphabetical order
+        alphabet = [
+            "\u0627", "\u0628", "\u067e", "\u062a", "\u0679", "\u062b", "\u062c", "\u0686", "\u062d", "\u062e",
+            "\u062f", "\u0688", "\u0630", "\u0631", "\u0691", "\u0632", "\u0698", "\u0633", "\u0634", "\u0635",
+            "\u0636", "\u0637", "\u0638", "\u0639", "\u063a", "\u0641", "\u0642", "\u06a9", "\u06af", "\u0644",
+            "\u0645", "\u0646", "\u0648", "\u06c1", "\u06be", "\u0621", "\u06cc", "\u0626", "\u06d2"
+        ]
+
+        alphaGrid = QGridLayout()
+        # Arrange in 3 rows (approx 13 columns per row)
+        COLUMNS_PER_ROW = 13
+        for index, char in enumerate(alphabet):
+            row = index // COLUMNS_PER_ROW
+            # add buttons RTL in a row
+            col = (COLUMNS_PER_ROW - 1) - (index % COLUMNS_PER_ROW)
+            btn = self.createButton(char, isChar=True)
+            alphaGrid.addWidget(btn, row, col)
+
+        layout.addLayout(alphaGrid)
+        layout.addSpacing(45)
+
+        ctrlGrid = QGridLayout()
+        controls = [
+            ("Del", "delete"), ("Bksp", "backspace"),
+            ("Home", "home"), ("End", "end"),
+            ("\u2190", "left"), ("\u2192", "right"),
+        ]
+
+        for index, (label, action) in enumerate(controls):
+            row = index // 2
+            col = index % 2
+            btn = self.createButton(label, isChar=False)
+            btn.clicked.connect(lambda checked=False, a=action: self.ctrlClicked.emit(a))
+            ctrlGrid.addWidget(btn, row, col)
+
+        layout.addLayout(ctrlGrid)
+        layout.addStretch()
+
+        self.setWidget(container)
+
+    def onButtonClick(self, char):
+        self.charClicked.emit(char)
+
+    def createButton(self, text, isChar=True):
+        btn = QPushButton(text)
+        btn.setFocusPolicy(Qt.NoFocus)
+        if isChar:
+            btn.setFixedSize(45, 45)
+        else:
+            btn.setFixedSize(60, 45) # Slightly wider for text labels
+
+        # Visual style
+        bg_color = "#ffffff" if isChar else "#e1e1e1"
+        font_size = 20 if isChar else 12
+        btn.setStyleSheet(f"""
+            QPushButton {{
+                font-size: {font_size}px; font-family: 'Calibri', Arial;
+                background-color: {bg_color}; border: 1px solid #bdc3c7; border-radius: 5px;
+            }}
+            QPushButton:hover {{ background-color: #ecf0f1; }}
+            QPushButton:pressed {{ background-color: #dcdde1; }}
+        """)
+
+        if isChar:
+            btn.clicked.connect(lambda checked=False, t=text: self.charClicked.emit(t))
+        return btn
+
+
 # ******************************************************************************
 class MainWindow(QMainWindow):
     # --------------------------------------------------------------------------
@@ -813,6 +901,31 @@ class MainWindow(QMainWindow):
 
         self.ui.btnSelectSource.clicked.connect(self.onOpenFile)
         self.ui.lstWords.selectionChanged.connect(self.onSelectionChanged)
+
+        self.keyboard = UrduKeyboardDock(self)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self.keyboard)
+        self.keyboard.charClicked.connect(self.ui.tcWordComposition.inputField.insert)
+        self.keyboard.ctrlClicked.connect(self.handleKeyboardControls)
+        self.keyboard.setVisible(True)
+
+    # ******************************************************************************
+    def handleKeyboardControls(self, action):
+        le = self.ui.tcWordComposition.inputField
+        if action == "backspace": le.backspace()
+        elif action == "delete": le.del_()
+        elif action == "left": le.setCursorPosition(le.cursorPosition() + 1)
+        elif action == "right": le.setCursorPosition(le.cursorPosition() - 1)
+        elif action == "home": le.home(False)
+        elif action == "end": le.end(False)
+
+    # ******************************************************************************
+    def keyPressEvent(self, event: QKeyEvent):
+        if event.key() == Qt.Key_F1:
+            isVisible = self.keyboard.isVisible()
+            self.keyboard.setVisible(not isVisible)
+        else:
+            super().keyPressEvent(event)
+
 
     # ******************************************************************************
     def onOpenFile(self):
@@ -973,7 +1086,7 @@ class TagWidget(QFrame):
         self.label = QLabel(text)
         urduFont = QFont()
         urduFont.setFamilies(["Noto Naskh Arabic", "Noto Sans"])
-        urduFont.setPointSize(16)
+        urduFont.setPointSize(12)
         self.label.setFont(urduFont)
 
         layout.addWidget(self.label)
@@ -1040,18 +1153,28 @@ class VocabCloud(QWidget):
 
 
 # ******************************************************************************
+class ReadOnlyLineEdit(QLineEdit):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFocusPolicy(Qt.StrongFocus)
+        self.setLayoutDirection(Qt.RightToLeft)
+
+    def keyPressEvent(self, event):
+        event.ignore()
+
+
+# ******************************************************************************
 class TagCloud(QWidget):
     """Main container with input and cloud."""
     # --------------------------------------------------------------------------
     def __init__(self, parent=None):
         super().__init__(parent)
         mainLayout = QVBoxLayout(self)
-        self.inputField = QLineEdit()
+        self.inputField = ReadOnlyLineEdit()
         urduFont = QFont()
         urduFont.setFamilies(["Noto Naskh Arabic", "Noto Sans"])
         urduFont.setPointSize(18)
         self.inputField.setFont(urduFont)
-        self.inputField.setReadOnly(True)
         self.inputField.setLayoutDirection(Qt.RightToLeft)
         self.inputField.textChanged.connect(self.onTextChanged)
 
@@ -1066,7 +1189,6 @@ class TagCloud(QWidget):
 
     # --------------------------------------------------------------------------
     def addTags(self, text):
-        # self.inputField.setText(text)
         if text:
             self.clearTags(self.flowLayout)
             for ch in text:
@@ -1076,13 +1198,11 @@ class TagCloud(QWidget):
                 # Use major category for color selection
                 bgColor = COLORS[uniCategory[0]]
                 widget.setStyleSheet(f"background-color : {bgColor};")
-                widget.clicked.connect(lambda: print('clikced!'))
 
                 self.flowLayout.addWidget(widget)
 
     # --------------------------------------------------------------------------
     def clearTags(self, layout=None):
-        # self.inputField.clear()
         if layout is not None:
             while self.flowLayout.count():
                 item = self.flowLayout.takeAt(0)
