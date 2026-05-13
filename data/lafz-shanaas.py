@@ -13,9 +13,6 @@ from pathlib import Path
 
 import spacy
 import unicodedataplus as ud
-from pylatexenc.latex2text import LatexNodes2Text
-from selectolax.parser import HTMLParser
-from symspellpy import SymSpell, Verbosity
 from PySide6.QtCore import (
     QMetaObject, QPoint, QRect, QSize, Qt, QRegularExpression, QEvent, Signal
 )
@@ -24,10 +21,15 @@ from PySide6.QtGui import (
     QMouseEvent, QTextCursor, QAction, QKeyEvent
 )
 from PySide6.QtWidgets import (
-    QApplication, QHBoxLayout, QLabel, QLineEdit, QMenuBar,
-    QPlainTextEdit, QPushButton, QStatusBar, QTabWidget, QVBoxLayout, QWidget,
-    QMainWindow, QFileDialog, QMenu, QFrame, QLayout, QScrollArea, QGridLayout, QDockWidget
+    QApplication, QGroupBox, QHBoxLayout, QHeaderView, QLabel, QLineEdit,
+    QMenuBar, QMessageBox, QPlainTextEdit, QPushButton, QSpinBox, QStatusBar,
+    QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
+    QMainWindow, QFileDialog, QMenu, QFrame, QLayout, QGridLayout, QDockWidget
 )
+from pylatexenc.latex2text import LatexNodes2Text
+from selectolax.parser import HTMLParser
+from spacy.tokens.token import Token
+from symspellpy import SymSpell, Verbosity
 
 
 # ******************************************************************************
@@ -56,7 +58,6 @@ def scriptScore(token, targetScript: str = 'ARABIC'):
 def preprocessXml(xmlContent):
     root = ET.fromstring(xmlContent)
     texts = [elem.text for elem in root.iter() if elem.text]
-    print(len(texts))
     return " ".join(texts)
 
 
@@ -374,6 +375,15 @@ URDU_VARIANT_MAP = {
         '\uFE93',  # ARABIC LETTER TE MARBUTA ISOLATED FORM
         '\uFE94',  # ARABIC LETTER TE MARBUTA FINAL FORM
     ],
+    # TEH MARBUTA GOAL (ۃ)
+    '\u06C3': [
+        # Base Character
+        '\u06C3',  # ARABIC LETTER TEH MARBUTA GOAL (Urdu/Sindhi variant)
+        # Standard Arabic Equivalents (For Cross-Dialect Search/Matching)
+        '\u0629',  # ARABIC LETTER TEH MARBUTA (ة)
+        '\uFE93',  # ARABIC LETTER TEH MARBUTA ISOLATED FORM (ﺓ)
+        '\uFE94',  # ARABIC LETTER TEH MARBUTA FINAL FORM (ﺔ)
+    ],
     # DO CHASHMI HE (ھ)
     '\u06BE': [
         '\u06BE',  # ARABIC LETTER HEH DOACHASHMEE
@@ -482,17 +492,22 @@ def normalizeWhiteSpace(text):
 def normalize(text):
     return normalizeWhiteSpace(normalizeNonChars(normalizeUrduChars(text)))
 
+def cleanToken(token: Token):
+    """Filters and normalizes ARABIC character containing tokens"""
+    txt = token.text.strip()
+    if scriptScore(txt, 'ARABIC') == 0.0:
+        return ''
+    txt = normalize(txt)
+    return txt
+
 
 # ******************************************************************************
-class Vocabulary():
-    def __init__(self, referenceVocabulary=None, sep='$'):
+class SpellChecker:
+    def __init__(self, spellingFile=None, sep='$'):
         self.symSpell = SymSpell()
-        if referenceVocabulary:
-            self.loadReference(referenceVocabulary, sep)
-        self.vocab = Counter()
-
-    def loadReference(self, filename, sep='$'):
-        self.symSpell.load_dictionary(filename, 0, 1, separator=sep, encoding='utf8')
+        if spellingFile:
+            self.symSpell.load_dictionary(spellingFile, 0, 1,
+                                          separator=sep, encoding='utf8')
 
     def exists(self, word):
         """Check if word exists in reference vocabulary"""
@@ -503,43 +518,69 @@ class Vocabulary():
         """Get suggestions from reference vocabulary"""
         return self.symSpell.lookup(word, Verbosity.CLOSEST, max_edit_distance=distance)
 
-    def extract(self, text, filterKnown=True):
-        """Extract word-frequency pairs from given text"""
-        def cleanToken(token):
-            txt = token.text
-            if scriptScore(txt) == 0.0:
-                return ''
-            txt = normalize(txt)
-            return txt
 
+# ******************************************************************************
+class Vocabulary:
+    def __init__(self, data=None):
+        self.counter = Counter(data)
+        self.completed = set()
+
+    def extract(self, text, spellChecker: SpellChecker = None):
+        """Extract word-frequency pairs from given text"""
         nlp = spacy.blank('ur')
         doc = nlp(text)
         words = [cleanToken(token) for token in doc]
-        words = list(filter(None, words))
-        words = [w for w in words if filterKnown and not self.exists(w)]
-        self.vocab.update(Counter(words))
+        words = [w for w in words if w and spellChecker and not spellChecker.exists(w)]
+        newCounter = Counter(words)
+        self.counter.update(newCounter)
 
-    @property
-    def words(self):
-        return [w for w, f in self.vocab.most_common()]
+    def add(self, word, count: int = 1):
+        self.counter[word] += count
+
+    def remove(self, word):
+        if word in self.counter:
+            del self.counter[word]
+        if word in self.completed:
+            self.completed.remove(word)
+
+    def updateFrequency(self, word, count):
+        self.counter[word] = count
+
+    def replaceWord(self, oldWord, newWord):
+        if oldWord in self.counter:
+            frequency = self.counter.pop(oldWord)
+            self.counter[newWord] = frequency
+            if oldWord in self.completed:
+                self.completed.remove(oldWord)
+                self.completed.add(newWord)
+
+    def setCompleted(self, word, isCompleted: bool):
+        if isCompleted:
+            self.completed.add(word)
+        else:
+            self.completed.discard(word)
 
     def save(self, filename, sep='$'):
         """Saves word-frequency pairs to a SymSpell file"""
         with open(filename, "w", encoding="utf-8") as sym:
-            for i, (w, f) in enumerate(self.vocab.most_common()):
-                sym.write(f"{w}{sep}{f}\n")
+            for i, (w, f) in enumerate(self.counter.most_common()):
+                if w in self.completed:
+                    sym.write(f"{w}{sep}{f}\n")
 
-    def load(self, filename, sep='$'):
+    @classmethod
+    def load(cls, filename, sep='$'):
         """Loads word-frequency pairs from a SymSpell file"""
-        counter = Counter()
+        newVocab = cls()
         with open(filename, 'r', encoding='utf-8') as f:
             for line in f:
                 line = line.strip()
                 if line:
-                    # Split by the specific '$' delimiter
-                    word, freq = line.rsplit(sep, 1)
-                    counter[word] = int(freq)
-        self.vocab = counter
+                    parts = line.rsplit('$', 1)
+                    if len(parts) == 2:
+                        word, freq = parts
+                        newVocab.updateFrequency(word, int(freq))
+                        newVocab.setCompleted(word, True)
+        return newVocab
 
 
 # ******************************************************************************
@@ -558,7 +599,7 @@ class SpellTextEdit(QPlainTextEdit):
     def __init__(self, *args):
         QPlainTextEdit.__init__(self, *args)
 
-        self.dictionary: Vocabulary | None = None
+        self.dictionary: SpellChecker | None = None
 
         doc = self.document()
         option = doc.defaultTextOption()
@@ -568,7 +609,7 @@ class SpellTextEdit(QPlainTextEdit):
         doc.setDefaultTextOption(option)
         self.sourceHighlighter = WordsHighlighter(doc)
 
-    def setDict(self, dictionary: Vocabulary | None):
+    def setDict(self, dictionary: SpellChecker | None):
         self.dictionary = dictionary
         self.sourceHighlighter.setDict(self.dictionary)
 
@@ -625,12 +666,41 @@ class SpellTextEdit(QPlainTextEdit):
 
 
 # ******************************************************************************
-LINE_COLORS = [
-    "#e68a8a",
-    "#8ae6c7",
-    "#e6a88a",
-    "#8ab9e6",
-]
+class SpecialLineEdit(QLineEdit):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.setFont(QFont('Calibri', 11))
+        self.setLayoutDirection(Qt.RightToLeft)
+        self.setAlignment(Qt.AlignRight)
+        # 1-to-1 Calibri-Safe Character Mappings
+        self.controlMap = {
+            "\u200C": "¦",  # ZWNJ -> Broken bar
+            "\u200D": "¤",  # ZWJ  -> Node anchor
+            "\u200E": "→",  # LRM  -> Right arrow
+            "\u200F": "←",  # RLM  -> Left arrow
+        }
+
+        # Create a reverse map for reading data out of the widget
+        self.reverseMap = {visual: raw for raw, visual in self.controlMap.items()}
+
+    def realText(self) -> str:
+        """Converts graphic symbols back into actionable control codes."""
+        cleanText = self.text()
+        for visual, raw in self.reverseMap.items():
+            cleanText = cleanText.replace(visual, raw)
+        return cleanText
+
+    def setRealText(self, text: str):
+        """Converts hidden control codes into graphic symbols for display."""
+        displayText = text
+        for raw, visual in self.controlMap.items():
+            displayText = displayText.replace(raw, visual)
+        self.setText(displayText)
+
+        unicodeString = ' '.join([f"U+{ord(ch):04X}" for ch in text[::-1]])
+        self.setToolTip(unicodeString)
+
 
 # ******************************************************************************
 class WordsHighlighter(QSyntaxHighlighter):
@@ -646,9 +716,9 @@ class WordsHighlighter(QSyntaxHighlighter):
 
         self.symSpell = SymSpell()
 
-        self.dictionary: Vocabulary | None = None
+        self.dictionary: SpellChecker | None = None
 
-    def setDict(self, dictionary: Vocabulary | None):
+    def setDict(self, dictionary: SpellChecker | None):
         self.dictionary = dictionary
 
     def highlightBlock(self, text):
@@ -678,119 +748,160 @@ class WordsHighlighter(QSyntaxHighlighter):
 class Ui_MainWindow(object):
     # --------------------------------------------------------------------------
     def setupUi(self, parentWindow):
-        parentWindow.setObjectName(u"LafzShanaasWindow")
+        parentWindow.setObjectName("LafzShanaasWindow")
         parentWindow.setWindowTitle("Lafz Shanaas")
         parentWindow.resize(800, 600)
 
         self.centralwidget = QWidget(parentWindow)
-        self.centralwidget.setObjectName(u"centralwidget")
+        self.centralwidget.setObjectName("centralwidget")
 
-        self.verticalLayout_2 = QVBoxLayout(self.centralwidget)
-        self.verticalLayout_2.setSpacing(2)
-        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.verticalLayout_2.setContentsMargins(2, 2, 2, 2)
+        self.centralVlayout = QVBoxLayout(self.centralwidget)
+        self.centralVlayout.setSpacing(2)
+        self.centralVlayout.setObjectName("centralVlayout")
+        self.centralVlayout.setContentsMargins(2, 2, 2, 2)
 
         self.tabWidget = QTabWidget(self.centralwidget)
-        self.tabWidget.setObjectName(u"tabWidget")
-        self.tbNew = QWidget()
-        self.tbNew.setObjectName(u"tbNew")
-        self.verticalLayout = QVBoxLayout(self.tbNew)
-        self.verticalLayout.setSpacing(2)
-        self.verticalLayout.setObjectName(u"verticalLayout")
-        self.verticalLayout.setContentsMargins(2, 2, 2, 2)
+        self.tabWidget.setObjectName("tabWidget")
+        
+        # New Tab --------------------------------------------------------------
+        self.tbProcess = QWidget()
+        self.tbProcess.setObjectName("tbProcess")
+        newVlayout = QVBoxLayout(self.tbProcess)
+
+        # Top Bar (File IO) ----------------------------------------------------
+        topHlayout = QHBoxLayout()
+        self.btnLoadVocab = QPushButton("📁 Load File")
+        self.btnSaveVocab = QPushButton("💾 Save Completed")
+        self.btnClearVocab = QPushButton("🧹 Clear All")
+        self.lblTotalWords = QLabel("Total Words: 0")
+        self.lblTotalWords.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        
+        topHlayout.addWidget(self.btnLoadVocab)
+        topHlayout.addWidget(self.btnSaveVocab)
+        topHlayout.addWidget(self.btnClearVocab)
+        topHlayout.addWidget(self.lblTotalWords)
+        newVlayout.addLayout(topHlayout)
+
+        # Data Grid (Table with RTL layout) ------------------------------------
+        self.table = QTableWidget()
+        self.table.setLayoutDirection(Qt.RightToLeft) # Main structural RTL declaration for rightward reading
+        self.table.setColumnCount(4)
+        self.table.setHorizontalHeaderLabels(["#", "Word", "Frequency", "Status"])
+        self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        self.table.setSelectionBehavior(QTableWidget.SelectRows)
+        newVlayout.addWidget(self.table)
+
+        # Bulk Actions Panel ---------------------------------------------------
+        bulkGroup = QGroupBox("Bulk Actions")
+        bulkGroup.setLayoutDirection(Qt.LeftToRight) # Kept standard for English reading order
+        bulkLayout = QHBoxLayout(bulkGroup)
+        self.btnSelectAll = QPushButton("Select All")
+        self.btnDeselectAll = QPushButton("Deselect All")
+        self.btnBulkDelete = QPushButton("🗑️ Delete Selected")
+        self.btnBulkComplete = QPushButton("✅ Mark Complete")
+        self.btnBulkIncomplete = QPushButton("❌ Mark Incomplete")
+        
+        bulkLayout.addWidget(self.btnSelectAll)
+        bulkLayout.addWidget(self.btnDeselectAll)
+        bulkLayout.addWidget(self.btnBulkDelete)
+        bulkLayout.addWidget(self.btnBulkComplete)
+        bulkLayout.addWidget(self.btnBulkIncomplete)
+        newVlayout.addWidget(bulkGroup)
+
+        # Single Edit Panel ----------------------------------------------------
+        editGroup = QGroupBox("Selected Word Details / Single Edit")
+        editGroup.setLayoutDirection(Qt.LeftToRight)
+        editLayout = QHBoxLayout(editGroup)
+        
+        self.leWordEdit = SpecialLineEdit()
+        self.leWordEdit.setLayoutDirection(Qt.RightToLeft) # Right align text input field for Urdu text entry
+        self.leWordEdit.setAlignment(Qt.AlignRight) # Right align text input field for Urdu text entry
+        self.spxFreqEdit = QSpinBox()
+        self.spxFreqEdit.setRange(0, 999999)
+        self.btnApplyEdit = QPushButton("💾 Apply Changes")
+        self.btnSingleDelete = QPushButton("🗑️ Delete Word")
+        
+        editLayout.addWidget(QLabel("Word:"))
+        editLayout.addWidget(self.leWordEdit)
+        editLayout.addWidget(QLabel("Frequency:"))
+        editLayout.addWidget(self.spxFreqEdit)
+        editLayout.addWidget(self.btnApplyEdit)
+        editLayout.addWidget(self.btnSingleDelete)
+        newVlayout.addWidget(editGroup)
+
+        # Single Add Panel -----------------------------------------------------
+        addGroup = QGroupBox("Add New Word")
+        addGroup.setLayoutDirection(Qt.LeftToRight)
+        addLayout = QHBoxLayout(addGroup)
+        
+        self.leWordAdd = SpecialLineEdit()
+        self.leWordAdd.setAlignment(Qt.AlignRight)
+        self.spxFreqAdd = QSpinBox()
+        self.spxFreqAdd.setRange(1, 999999)
+        self.spxFreqAdd.setValue(1)
+        self.btnAddWord = QPushButton("➕ Add to List")
+        
+        addLayout.addWidget(QLabel("Word:"))
+        addLayout.addWidget(self.leWordAdd)
+        addLayout.addWidget(QLabel("Frequency:"))
+        addLayout.addWidget(self.spxFreqAdd)
+        addLayout.addWidget(self.btnAddWord)
+        newVlayout.addWidget(addGroup)
+
+        self.tabWidget.addTab(self.tbProcess, "Process")
+
+        # Extract Tab ----------------------------------------------------------
+        self.tbExtract = QWidget()
+        self.tbExtract.setObjectName("tbExtract")
+
+        self.extractLayout = QVBoxLayout(self.tbExtract)
+        self.extractLayout.setSpacing(2)
+        self.extractLayout.setObjectName("verticalLayout")
+        self.extractLayout.setContentsMargins(2, 2, 2, 2)
+
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setSpacing(2)
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.label = QLabel(self.tbNew)
-        self.label.setObjectName(u"label")
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.label = QLabel(self.tbProcess)
+        self.label.setObjectName("label")
         self.label.setText("Source")
 
         self.horizontalLayout.addWidget(self.label)
 
-        self.leSourceFile = QLineEdit(self.tbNew)
-        self.leSourceFile.setObjectName(u"leSourceFile")
+        self.leSourceFile = QLineEdit(self.tbProcess)
+        self.leSourceFile.setObjectName("leSourceFile")
         self.leSourceFile.setReadOnly(True)
 
         self.horizontalLayout.addWidget(self.leSourceFile)
 
-        self.btnSelectSource = QPushButton(self.tbNew)
-        self.btnSelectSource.setObjectName(u"btnSelectSource")
+        self.btnSelectSource = QPushButton(self.tbProcess)
+        self.btnSelectSource.setObjectName("btnSelectSource")
         self.btnSelectSource.setText("Open...")
         self.btnSelectSource.setFocusPolicy(Qt.FocusPolicy.TabFocus)
 
         self.horizontalLayout.addWidget(self.btnSelectSource)
 
-        self.btnSave = QPushButton(self.tbNew)
-        self.btnSave.setObjectName(u"btnSave")
-        self.btnSave.setText("Save...")
-        self.btnSave.setFocusPolicy(Qt.FocusPolicy.TabFocus)
+        self.extractLayout.addLayout(self.horizontalLayout)
 
-        self.horizontalLayout.addWidget(self.btnSave)
-
-        self.btnSaveAs = QPushButton(self.tbNew)
-        self.btnSaveAs.setObjectName(u"btnSaveAs")
-        self.btnSaveAs.setText("Save As...")
-        self.btnSaveAs.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-
-        self.horizontalLayout.addWidget(self.btnSaveAs)
-
-
-        self.verticalLayout.addLayout(self.horizontalLayout)
-
-        self.tbxSourceText = SpellTextEdit(self.tbNew)
-        self.tbxSourceText.setObjectName(u"tbxSourceText")
+        self.tbxSourceText = SpellTextEdit(self.tbProcess)
+        self.tbxSourceText.setObjectName("tbxSourceText")
         self.tbxSourceText.setReadOnly(True)
         self.tbxSourceText.setStyleSheet("background-color: #f0f0f0;")
-        urduFont = QFont()
-        urduFont.setFamilies([u"Calibri"])
-        urduFont.setPointSize(32)
-        self.tbxSourceText.setFont(urduFont)
+        self.tbxSourceText.setFont(parentWindow.font())
 
-        self.verticalLayout.addWidget(self.tbxSourceText, stretch=3)
+        self.extractLayout.addWidget(self.tbxSourceText, stretch=3)
 
-        self.scrollArea = QScrollArea()
-        self.scrollArea.setWidgetResizable(True)
-        self.lstWords = VocabCloud(self.tbNew)
-        self.lstWords.setObjectName(u"lstWords")
-        # self.lstWords = QListWidget(self.tbNew)
-        # self.lstWords.setObjectName(u"lstWords")
-        # self.lstWords.setFont(urduFont)
-        # self.lstWords.setLayoutDirection(Qt.RightToLeft)
-        # self.lstWords.setSelectionMode(QAbstractItemView.SingleSelection)
-        # self.lstWords.setAlternatingRowColors(True)
-        # self.lstWords.setStyleSheet("""
-        #     QListWidget { outline: 0; }
-        #     QListWidget::item:selected {
-        #         background-color: #888;
-        #     }
-        #     QListWidget::item:hover {
-        #         background-color: #CCC;
-        #         color: #fff;
-        #     }
-        # """)
+        self.tabWidget.addTab(self.tbExtract, "Extract")
 
-        self.scrollArea.setWidget(self.lstWords)
-        self.verticalLayout.addWidget(self.scrollArea, stretch=1)
-
-        self.tcWordComposition = TagCloud(self.tbNew)
-        self.tcWordComposition.setObjectName(u"tcWordComposition")
-
-        self.verticalLayout.addWidget(self.tcWordComposition, stretch=0)
-
-        self.tabWidget.addTab(self.tbNew, "New")
-        self.tbMerge = QWidget()
-        self.tbMerge.setObjectName(u"tbMerge")
-        self.tabWidget.addTab(self.tbMerge, "Merge")
-
-        self.verticalLayout_2.addWidget(self.tabWidget)
+        self.centralVlayout.addWidget(self.tabWidget)
 
         parentWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(parentWindow)
-        self.menubar.setObjectName(u"menubar")
+        self.menubar.setObjectName("menubar")
         self.menubar.setGeometry(QRect(0, 0, 800, 33))
         parentWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(parentWindow)
-        self.statusbar.setObjectName(u"statusbar")
+        self.statusbar.setObjectName("statusbar")
         parentWindow.setStatusBar(self.statusbar)
 
         self.tabWidget.setCurrentIndex(0)
@@ -816,10 +927,12 @@ class UrduKeyboardDock(QDockWidget):
 
         # Urdu alphabet in alphabetical order
         alphabet = [
-            "\u0627", "\u0628", "\u067e", "\u062a", "\u0679", "\u062b", "\u062c", "\u0686", "\u062d", "\u062e",
-            "\u062f", "\u0688", "\u0630", "\u0631", "\u0691", "\u0632", "\u0698", "\u0633", "\u0634", "\u0635",
-            "\u0636", "\u0637", "\u0638", "\u0639", "\u063a", "\u0641", "\u0642", "\u06a9", "\u06af", "\u0644",
-            "\u0645", "\u0646", "\u0648", "\u06c1", "\u06be", "\u0621", "\u06cc", "\u0626", "\u06d2"
+            "\u0627", "\u0628", "\u067e", "\u062a", "\u0679", "\u062b", "\u062c",
+            "\u0686", "\u062d", "\u062e", "\u062f", "\u0688", "\u0630",
+            "\u0631", "\u0691", "\u0632", "\u0698", "\u0633", "\u0634", "\u0635",
+            "\u0636", "\u0637", "\u0638", "\u0639", "\u063a", "\u0641",
+            "\u0642", "\u06a9", "\u06af", "\u0644", "\u0645", "\u0646", "\u0648",
+            "\u06c1", "\u06be", "\u0621", "\u06cc", "\u0626", "\u06d2"
         ]
 
         alphaGrid = QGridLayout()
@@ -888,29 +1001,47 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        # Explicitly enforce Calibri typography across components
+        appFont = QFont("Calibri", 12)
+        self.setFont(appFont)
+
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        self.vocabulary = Vocabulary()
-        self.ui.tbxSourceText.setDict(self.vocabulary)
+        self.spellChecker = SpellChecker('UrduVocab5k.sym')
+        self.ui.tbxSourceText.setDict(self.spellChecker)
+        self.vocab = Vocabulary()
 
         self.setStyleSheet("""
             #Tag { background-color: #e1e4e8; border-radius: 4px; border: 1px solid #ccc; }
             #Tag:hover { background-color: #d1d5da; }
         """)
 
-        self.ui.btnSelectSource.clicked.connect(self.onOpenFile)
-        self.ui.lstWords.selectionChanged.connect(self.onSelectionChanged)
-
         self.keyboard = UrduKeyboardDock(self)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.keyboard)
-        self.keyboard.charClicked.connect(self.ui.tcWordComposition.inputField.insert)
+        self.keyboard.setVisible(False)
+
+        # Signal Connections ---------------------------------------------------
+        self.ui.table.itemSelectionChanged.connect(self.onRowSelected)
+        self.ui.btnLoadVocab.clicked.connect(self.loadFile)
+        self.ui.btnSaveVocab.clicked.connect(self.saveFile)
+        self.ui.btnClearVocab.clicked.connect(self.clearVocab)
+        self.ui.btnSelectAll.clicked.connect(lambda: self.toggleAllCheckboxes(Qt.Checked))
+        self.ui.btnDeselectAll.clicked.connect(lambda: self.toggleAllCheckboxes(Qt.Unchecked))
+        self.ui.btnBulkDelete.clicked.connect(self.bulkDelete)
+        self.ui.btnBulkComplete.clicked.connect(lambda: self.bulkStatusChange(True))
+        self.ui.btnBulkIncomplete.clicked.connect(lambda: self.bulkStatusChange(False))
+        self.ui.btnApplyEdit.clicked.connect(self.applySingleEdit)
+        self.ui.btnSingleDelete.clicked.connect(self.deleteSingleWord)
+        self.ui.btnAddWord.clicked.connect(self.addNewWord)
+        self.ui.btnSelectSource.clicked.connect(self.onOpenFile)
+
+        self.keyboard.charClicked.connect(self.ui.leWordEdit.insert)
         self.keyboard.ctrlClicked.connect(self.handleKeyboardControls)
-        self.keyboard.setVisible(True)
 
     # ******************************************************************************
     def handleKeyboardControls(self, action):
-        le = self.ui.tcWordComposition.inputField
+        le = self.ui.leWordEdit
         if action == "backspace": le.backspace()
         elif action == "delete": le.del_()
         elif action == "left": le.setCursorPosition(le.cursorPosition() + 1)
@@ -967,22 +1098,181 @@ class MainWindow(QMainWindow):
             sourceTxt = sourceTxt[:1_000_000]
             print("Trimming input text size to 1,000,000")
 
-        self.vocabulary.extract(sourceTxt)
 
         # Update UI
         self.ui.leSourceFile.setText(filePath)
         self.ui.tbxSourceText.setPlainText(rawContent)
-        self.ui.lstWords.clearTags()
-        self.ui.lstWords.addTags(self.vocabulary.words)
-        self.ui.tcWordComposition.inputField.clear()
+        self.vocab.extract(sourceTxt, self.spellChecker)
+        self.refreshTable()
 
-# Read a text file.
-# Tokenize the contents.
-# Extract all Urdu words.
-# Optionally use a dictionary to screen new words.
-# Allow the to edit the new words.
-# Reparse the input document for word frequency.
-# Save the new vocabulary
+    # ==========================================================================
+    # Presentation Logic
+    def refreshTable(self):
+        """Redraws table items and applies conditional background styling."""
+        self.ui.table.blockSignals(True)
+        self.ui.table.setRowCount(0)
+        
+        # UI color hex codes tailored for legibility
+        lightGreen = QColor("#D4EDDA")
+        lightRed = QColor("#F8D7DA")
+        
+        for idx, (word, freq) in enumerate(self.vocab.counter.most_common()):
+            self.ui.table.insertRow(idx)
+            
+            isCompleted = word in self.vocab.completed
+            rowColor = lightGreen if isCompleted else lightRed
+            
+            # Column 0: Selection Checkbox
+            selectItem = QTableWidgetItem()
+            selectItem.setCheckState(Qt.Unchecked)
+            selectItem.setTextAlignment(Qt.AlignCenter)
+            
+            # Column 1: Word String
+            wordItem = QTableWidgetItem(word)
+            
+            # Column 2: Frequency Numeric
+            freqItem = QTableWidgetItem(f"{freq:,}")
+            freqItem.setTextAlignment(Qt.AlignCenter)
+            
+            # Column 3: Status Description
+            statusItem = QTableWidgetItem()
+            statusItem.setText("✔" if isCompleted else "❌")
+            
+            # Paint background color conditions dynamically
+            for item in (selectItem, wordItem, freqItem, statusItem):
+                item.setBackground(rowColor)
+            
+            self.ui.table.setItem(idx, 0, selectItem)
+            self.ui.table.setItem(idx, 1, wordItem)
+            self.ui.table.setItem(idx, 2, freqItem)
+            self.ui.table.setItem(idx, 3, statusItem)
+
+        self.ui.lblTotalWords.setText(f"Total Words: {len(self.vocab.counter)}")
+        self.ui.table.blockSignals(False)
+
+    def getSelectedWords(self):
+        words = []
+        for row in range(self.ui.table.rowCount()):
+            if self.ui.table.item(row, 0).checkState() == Qt.Checked:
+                words.append(self.ui.table.item(row, 1).text())
+        return words
+
+    def toggleAllCheckboxes(self, state):
+        for row in range(self.ui.table.rowCount()):
+            self.ui.table.item(row, 0).setCheckState(state)
+
+    # ==========================================================================
+    # Event Handlers & Controller Logic
+    def onRowSelected(self):
+        selectedRanges = self.ui.table.selectedRanges()
+        if not selectedRanges:
+            return
+        row = selectedRanges[0].topRow()
+        self.selectedOldWord = self.ui.table.item(row, 1).text()
+        freq = int(self.ui.table.item(row, 2).text().replace(',', ''))
+        
+        self.ui.leWordEdit.setRealText(self.selectedOldWord)
+        self.ui.spxFreqEdit.setValue(freq)
+
+    def addNewWord(self):
+        word = self.ui.leWordAdd.text().strip()
+        if not word:
+            return
+        self.vocab.add(word, self.ui.spxFreqAdd.value())
+        self.ui.leWordAdd.clear()
+        self.ui.spxFreqAdd.setValue(1)
+        self.refreshTable()
+
+    def applySingleEdit(self):
+        if not self.selectedOldWord:
+            return
+        newWord = self.ui.leWordEdit.realText().strip()
+        newFreq = self.ui.spxFreqEdit.value()
+        
+        if not newWord:
+            return
+            
+        if self.selectedOldWord != newWord:
+            self.vocab.replaceWord(self.selectedOldWord, newWord)
+        self.vocab.updateFrequency(newWord, newFreq)
+        self.ui.leWordEdit.clear()
+        self.refreshTable()
+
+    def deleteSingleWord(self):
+        if not self.selectedOldWord:
+            return
+        self.vocab.remove(self.selectedOldWord)
+        self.selectedOldWord = None
+        self.ui.leWordEdit.clear()
+        self.refreshTable()
+
+    def bulkDelete(self):
+        wordsToDelete = self.getSelectedWords()
+        if not wordsToDelete:
+            return
+        for word in wordsToDelete:
+            self.vocab.remove(word)
+        self.refreshTable()
+
+    def bulkStatusChange(self, isComplete):
+        wordsToChange = self.getSelectedWords()
+        for word in wordsToChange:
+            self.vocab.setCompleted(word, isComplete)
+        self.refreshTable()
+
+    # ==========================================================================
+    # File Operations
+    def saveFile(self):
+        filename, _ = QFileDialog.getSaveFileName(
+            self,
+            "Lafz Shanaas - Save Completed Vocabulary",
+            "", "Text Files (*.txt);;Spelling Files (*.sym);;All Files (*)")
+        if filename:
+            try:
+                self.vocab.save(filename)
+                QMessageBox.information(
+                    self, "Lafz Shanaas",
+                    f"Completed vocabulary items ({len(self.vocab.counter):,}) saved successfully.")
+            except Exception as e:
+                QMessageBox.critical(
+                    self, "Lafz Shanaas",
+                    f"Could not save file: {str(e)}")
+
+    def loadFile(self):
+        filename, _ = QFileDialog.getOpenFileName(
+            self, "Load Vocabulary",
+            "", "Spelling Files (*.sym);;Text Files (*.txt);;All Files (*)")
+        if filename:
+            try:
+                self.vocab = Vocabulary.load(filename)
+                self.refreshTable()
+                QMessageBox.information(
+                    self, "Lafz Shanaas",
+                    f"Vocabulary loaded successfully as completed items ({len(self.vocab.counter):,}).")
+            except Exception as e:
+                QMessageBox.critical(
+                    self, "Lafz Shanaas",
+                    f"Could not load file: {str(e)}")
+
+    def clearVocab(self):
+        if len(self.vocab.counter) > 0:
+            msgBox = QMessageBox(self)
+            msgBox.setIcon(QMessageBox.Icon.Warning)
+            msgBox.setWindowTitle("Lafz Shanaas - Confirm Clear")
+            msgBox.setText("Are you sure you want to clear all contents?")
+            msgBox.setInformativeText("This action cannot be undone. Select No to cancel.")
+
+            msgBox.setStandardButtons(
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            )
+            msgBox.setDefaultButton(QMessageBox.StandardButton.No)
+
+            # Execute dialog
+            response = msgBox.exec()
+            if response == QMessageBox.StandardButton.Yes:
+                self.vocab = Vocabulary()
+                self.refreshTable()
+
 
 # ******************************************************************************
 # Unicode Character Category Color Assignment
