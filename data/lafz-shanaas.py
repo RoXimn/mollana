@@ -24,7 +24,7 @@ from PySide6.QtWidgets import (
     QApplication, QGroupBox, QHBoxLayout, QHeaderView, QLabel, QLineEdit,
     QMenuBar, QMessageBox, QPlainTextEdit, QPushButton, QSpinBox, QStatusBar,
     QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
-    QMainWindow, QFileDialog, QMenu, QFrame, QLayout, QGridLayout, QDockWidget
+    QMainWindow, QFileDialog, QMenu, QFrame, QLayout, QGridLayout, QDockWidget, QSizePolicy
 )
 from pylatexenc.latex2text import LatexNodes2Text
 from selectolax.parser import HTMLParser
@@ -535,33 +535,38 @@ class Vocabulary:
         self.counter.update(newCounter)
 
     def add(self, word, count: int = 1):
+        """Add word to vocabulary; accumulating count for existing word"""
         self.counter[word] += count
 
     def remove(self, word):
+        """Remove word from vocabulary"""
         if word in self.counter:
             del self.counter[word]
         if word in self.completed:
             self.completed.remove(word)
 
-    def updateFrequency(self, word, count):
-        self.counter[word] = count
-
-    def replaceWord(self, oldWord, newWord):
+    def replace(self, oldWord, newWord):
+        """Replace an old word with new, preserving frequency and completion status"""
         if oldWord in self.counter:
-            frequency = self.counter.pop(oldWord)
-            self.counter[newWord] = frequency
+            # remove old from counter
+            oldFreq = self.counter.pop(oldWord)
+
+            self.add(newWord, oldFreq)
+
+            # remove from completed
             if oldWord in self.completed:
                 self.completed.remove(oldWord)
                 self.completed.add(newWord)
 
     def setCompleted(self, word, isCompleted: bool):
+        """Mark word as completed or uncompleted"""
         if isCompleted:
             self.completed.add(word)
         else:
             self.completed.discard(word)
 
     def save(self, filename, sep='$'):
-        """Saves word-frequency pairs to a SymSpell file"""
+        """Saves completed word-frequency pairs to a SymSpell file"""
         with open(filename, "w", encoding="utf-8") as sym:
             for i, (w, f) in enumerate(self.counter.most_common()):
                 if w in self.completed:
@@ -578,7 +583,7 @@ class Vocabulary:
                     parts = line.rsplit('$', 1)
                     if len(parts) == 2:
                         word, freq = parts
-                        newVocab.updateFrequency(word, int(freq))
+                        newVocab.add(word, int(freq))
                         newVocab.setCompleted(word, True)
         return newVocab
 
@@ -771,15 +776,29 @@ class Ui_MainWindow(object):
         # Top Bar (File IO) ----------------------------------------------------
         topHlayout = QHBoxLayout()
         self.btnLoadVocab = QPushButton("📁 Load File")
-        self.btnSaveVocab = QPushButton("💾 Save Completed")
+        self.btnLoadVocab.setMinimumWidth(160)
+        self.btnSaveVocab = QPushButton("💾 Save (Completed)")
+        self.btnSaveVocab.setMinimumWidth(160)
         self.btnClearVocab = QPushButton("🧹 Clear All")
+        self.btnClearVocab.setMinimumWidth(160)
         self.lblTotalWords = QLabel("Total Words: 0")
         self.lblTotalWords.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-        
+        self.leSearch = QLineEdit()
+        self.leSearch.setLayoutDirection(Qt.RightToLeft)
+        self.leSearch.setAlignment(Qt.AlignLeft)
+        self.leSearch.setPlaceholderText("Search")
+        style = parentWindow.style()
+        searchIcon = style.standardIcon(style.StandardPixmap.SP_TitleBarContextHelpButton)
+        iconAction = QAction(searchIcon, "", self.leSearch)
+        self.leSearch.addAction(iconAction, QLineEdit.ActionPosition.LeadingPosition)
+        self.leSearch.setClearButtonEnabled(True)
+
         topHlayout.addWidget(self.btnLoadVocab)
         topHlayout.addWidget(self.btnSaveVocab)
         topHlayout.addWidget(self.btnClearVocab)
         topHlayout.addWidget(self.lblTotalWords)
+        topHlayout.addStretch()
+        topHlayout.addWidget(self.leSearch)
         newVlayout.addLayout(topHlayout)
 
         # Data Grid (Table with RTL layout) ------------------------------------
@@ -793,29 +812,37 @@ class Ui_MainWindow(object):
 
         # Bulk Actions Panel ---------------------------------------------------
         bulkGroup = QGroupBox("Bulk Actions")
-        bulkGroup.setLayoutDirection(Qt.LeftToRight) # Kept standard for English reading order
+        bulkGroup.setLayoutDirection(Qt.LeftToRight)
         bulkLayout = QHBoxLayout(bulkGroup)
         self.btnSelectAll = QPushButton("Select All")
+        self.btnSelectAll.setMinimumWidth(160)
         self.btnDeselectAll = QPushButton("Deselect All")
-        self.btnBulkDelete = QPushButton("🗑️ Delete Selected")
+        self.btnDeselectAll.setMinimumWidth(160)
         self.btnBulkComplete = QPushButton("✅ Mark Complete")
+        self.btnBulkComplete.setMinimumWidth(160)
         self.btnBulkIncomplete = QPushButton("❌ Mark Incomplete")
-        
+        self.btnBulkIncomplete.setMinimumWidth(160)
+        self.btnBulkDelete = QPushButton("🗑️ Delete Selected")
+        self.btnBulkDelete.setMinimumWidth(160)
+
         bulkLayout.addWidget(self.btnSelectAll)
         bulkLayout.addWidget(self.btnDeselectAll)
-        bulkLayout.addWidget(self.btnBulkDelete)
+        bulkLayout.addStretch()
         bulkLayout.addWidget(self.btnBulkComplete)
         bulkLayout.addWidget(self.btnBulkIncomplete)
+        bulkLayout.addStretch()
+        bulkLayout.addWidget(self.btnBulkDelete)
         newVlayout.addWidget(bulkGroup)
 
         # Single Edit Panel ----------------------------------------------------
-        editGroup = QGroupBox("Selected Word Details / Single Edit")
+        editGroup = QGroupBox("Selected Word")
         editGroup.setLayoutDirection(Qt.LeftToRight)
         editLayout = QHBoxLayout(editGroup)
         
         self.leWordEdit = SpecialLineEdit()
-        self.leWordEdit.setLayoutDirection(Qt.RightToLeft) # Right align text input field for Urdu text entry
-        self.leWordEdit.setAlignment(Qt.AlignRight) # Right align text input field for Urdu text entry
+        self.leWordEdit.setLayoutDirection(Qt.RightToLeft)
+        self.leWordEdit.setAlignment(Qt.AlignLeft)
+        self.leWordEdit.setClearButtonEnabled(True)
         self.spxFreqEdit = QSpinBox()
         self.spxFreqEdit.setRange(0, 999999)
         self.btnApplyEdit = QPushButton("💾 Apply Changes")
@@ -835,7 +862,9 @@ class Ui_MainWindow(object):
         addLayout = QHBoxLayout(addGroup)
         
         self.leWordAdd = SpecialLineEdit()
-        self.leWordAdd.setAlignment(Qt.AlignRight)
+        self.leWordAdd.setLayoutDirection(Qt.RightToLeft)
+        self.leWordAdd.setAlignment(Qt.AlignLeft)
+        self.leWordAdd.setClearButtonEnabled(True)
         self.spxFreqAdd = QSpinBox()
         self.spxFreqAdd.setRange(1, 999999)
         self.spxFreqAdd.setValue(1)
@@ -927,17 +956,17 @@ class UrduKeyboardDock(QDockWidget):
 
         # Urdu alphabet in alphabetical order
         alphabet = [
-            "\u0627", "\u0628", "\u067e", "\u062a", "\u0679", "\u062b", "\u062c",
-            "\u0686", "\u062d", "\u062e", "\u062f", "\u0688", "\u0630",
+            "\u0622", "\u0627", "\u0628", "\u067e", "\u062a", "\u0679", "\u062b",
+            "\u062c", "\u0686", "\u062d", "\u062e", "\u062f", "\u0688", "\u0630",
             "\u0631", "\u0691", "\u0632", "\u0698", "\u0633", "\u0634", "\u0635",
-            "\u0636", "\u0637", "\u0638", "\u0639", "\u063a", "\u0641",
-            "\u0642", "\u06a9", "\u06af", "\u0644", "\u0645", "\u0646", "\u0648",
-            "\u06c1", "\u06be", "\u0621", "\u06cc", "\u0626", "\u06d2"
+            "\u0636", "\u0637", "\u0638", "\u0639", "\u063a", "\u0641", "\u0642",
+            "\u06a9", "\u06af", "\u0644", "\u0645", "\u0646", "\u06BA", "\u0648",
+            "\u06c1", "\u0629", "\u06be", "\u0621", "\u0626", "\u06cc", "\u06d2"
         ]
 
         alphaGrid = QGridLayout()
         # Arrange in 3 rows (approx 13 columns per row)
-        COLUMNS_PER_ROW = 13
+        COLUMNS_PER_ROW = 14
         for index, char in enumerate(alphabet):
             row = index // COLUMNS_PER_ROW
             # add buttons RTL in a row
@@ -1026,6 +1055,7 @@ class MainWindow(QMainWindow):
         self.ui.btnLoadVocab.clicked.connect(self.loadFile)
         self.ui.btnSaveVocab.clicked.connect(self.saveFile)
         self.ui.btnClearVocab.clicked.connect(self.clearVocab)
+        self.ui.leSearch.textChanged.connect(self.filterTable)
         self.ui.btnSelectAll.clicked.connect(lambda: self.toggleAllCheckboxes(Qt.Checked))
         self.ui.btnDeselectAll.clicked.connect(lambda: self.toggleAllCheckboxes(Qt.Unchecked))
         self.ui.btnBulkDelete.clicked.connect(self.bulkDelete)
@@ -1036,18 +1066,25 @@ class MainWindow(QMainWindow):
         self.ui.btnAddWord.clicked.connect(self.addNewWord)
         self.ui.btnSelectSource.clicked.connect(self.onOpenFile)
 
-        self.keyboard.charClicked.connect(self.ui.leWordEdit.insert)
-        self.keyboard.ctrlClicked.connect(self.handleKeyboardControls)
+        self.keyboard.charClicked.connect(self.handleCharKeys)
+        self.keyboard.ctrlClicked.connect(self.handleControlKeys)
 
     # ******************************************************************************
-    def handleKeyboardControls(self, action):
-        le = self.ui.leWordEdit
-        if action == "backspace": le.backspace()
-        elif action == "delete": le.del_()
-        elif action == "left": le.setCursorPosition(le.cursorPosition() + 1)
-        elif action == "right": le.setCursorPosition(le.cursorPosition() - 1)
-        elif action == "home": le.home(False)
-        elif action == "end": le.end(False)
+    def handleCharKeys(self, char):
+        le = QApplication.focusWidget()
+        if isinstance(le, QLineEdit):
+            le.insert(char)
+
+    # ******************************************************************************
+    def handleControlKeys(self, action):
+        le = QApplication.focusWidget()
+        if isinstance(le, QLineEdit):
+            if action == "backspace": le.backspace()
+            elif action == "delete": le.del_()
+            elif action == "left": le.setCursorPosition(le.cursorPosition() + 1)
+            elif action == "right": le.setCursorPosition(le.cursorPosition() - 1)
+            elif action == "home": le.home(False)
+            elif action == "end": le.end(False)
 
     # ******************************************************************************
     def keyPressEvent(self, event: QKeyEvent):
@@ -1057,8 +1094,19 @@ class MainWindow(QMainWindow):
         else:
             super().keyPressEvent(event)
 
-
     # ******************************************************************************
+    def filterTable(self, text):
+        targetColumn = 1
+        if text is None or len(text) == 0:
+            for row in range(self.ui.table.rowCount()):
+                self.ui.table.setRowHidden(row, False)
+        else:
+            for row in range(self.ui.table.rowCount()):
+                item = self.ui.table.item(row, targetColumn)
+                if item is not None:
+                    self.ui.table.setRowHidden(row, text not in item.text())
+
+# ******************************************************************************
     def onOpenFile(self):
         filePath, _ = QFileDialog.getOpenFileName(
             self,
@@ -1069,11 +1117,6 @@ class MainWindow(QMainWindow):
 
         if filePath:
             self.loadInputFile(filePath)
-
-    # ******************************************************************************
-    def onSelectionChanged(self, text):
-        if text:
-            self.ui.tcWordComposition.inputField.setText(text)
 
     # ******************************************************************************
     def loadInputFile(self, filePath):
@@ -1111,6 +1154,7 @@ class MainWindow(QMainWindow):
         """Redraws table items and applies conditional background styling."""
         self.ui.table.blockSignals(True)
         self.ui.table.setRowCount(0)
+        self.ui.leSearch.clear()
         
         # UI color hex codes tailored for legibility
         lightGreen = QColor("#D4EDDA")
@@ -1187,14 +1231,13 @@ class MainWindow(QMainWindow):
         if not self.selectedOldWord:
             return
         newWord = self.ui.leWordEdit.realText().strip()
-        newFreq = self.ui.spxFreqEdit.value()
-        
+
         if not newWord:
             return
             
         if self.selectedOldWord != newWord:
-            self.vocab.replaceWord(self.selectedOldWord, newWord)
-        self.vocab.updateFrequency(newWord, newFreq)
+            print(f"replacing {self.selectedOldWord} with {newWord}")
+            self.vocab.replace(self.selectedOldWord, newWord)
         self.ui.leWordEdit.clear()
         self.refreshTable()
 
@@ -1226,7 +1269,7 @@ class MainWindow(QMainWindow):
         filename, _ = QFileDialog.getSaveFileName(
             self,
             "Lafz Shanaas - Save Completed Vocabulary",
-            "", "Text Files (*.txt);;Spelling Files (*.sym);;All Files (*)")
+            "", "Spelling Files (*.sym);;Text Files (*.txt);;All Files (*)")
         if filename:
             try:
                 self.vocab.save(filename)
