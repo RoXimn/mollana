@@ -84,7 +84,11 @@ def replaceEnding(token: str, mapping: dict, n: int) -> str:
 # ******************************************************************************
 def findVowelCombos(word):
     # Convert list to set for O(1) average lookup performance
-    VowelPatterns = ["a", "i", "u", "aa", "ai" , "ay", "ei", "e", "ee", "ey", "ie", "oo", "au", "ou", "o"]
+    VowelPatterns = ["a", "aa", "ai", "au", "ay",
+                     "e", "ee", "ei", "ey",
+                     "i", "ie",
+                     "o", "oo", "ou",
+                     "u"]
     vowelsSet = set(VowelPatterns)
     validCombos = []
 

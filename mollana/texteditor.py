@@ -15,7 +15,7 @@ from PySide6.QtGui import (
 )
 from PySide6.QtWidgets import QPlainTextEdit, QWidget, QTextEdit, QListWidget
 
-from mollana.mapping import createDictionaries, processRomanToken
+from mollana.mapping import loadDictionaries, processRomanToken
 
 # ******************************************************************************
 HighlightingRule = namedtuple('HighlightingRule',
@@ -110,7 +110,7 @@ class TextEditor(QPlainTextEdit):
         self.parent = parent
 
         self.RomanUrduDict, self.DeromanizerMapping = (
-            createDictionaries("RomanizedUrduWords150k.dict",
+            loadDictionaries("RomanizedUrduWords150k.dict",
                                "RomanizedUrduWords150k.csv"))
 
         doc = self.document()

@@ -19,7 +19,8 @@ from tafseer import tafseerUrduRm2Rm
 # ******************************************************************************
 def dictLookup(word: str, *, dictionary: SymSpell, distance: int) -> list:
     suggestions = dictionary.lookup(word, Verbosity.CLOSEST,
-                                    max_edit_distance=distance, include_unknown=False)
+                                    max_edit_distance=distance,
+                                    include_unknown=False)
     s0 = list(filter(lambda item: item.distance == 0, suggestions))
     if distance <= 0:
         return [s0, [], []]
@@ -80,7 +81,7 @@ def processRomanToken(token, urDict: SymSpell, deromanizerMapping: dict) -> list
 
 
 # ******************************************************************************
-def createDictionaries(dictPath: str, csvPath: str) -> tuple[SymSpell, dict]:
+def loadDictionaries(dictPath: str, csvPath: str) -> tuple[SymSpell, dict]:
     symSpellDict = SymSpell()
     success = symSpellDict.load_dictionary(dictPath,
                                    term_index=0, count_index=1,
@@ -106,7 +107,7 @@ def createDictionaries(dictPath: str, csvPath: str) -> tuple[SymSpell, dict]:
 
 # ******************************************************************************
 if __name__ == '__main__':
-    RomanUrduDict, DeromanizerMapping = createDictionaries("RomanizedUrduWords150k.dict",
+    RomanUrduDict, DeromanizerMapping = loadDictionaries("RomanizedUrduWords150k.dict",
                                                         "RomanizedUrduWords150k.csv")
     word = 'JNORY'
     u0, u1, u2 = processRomanToken(word, RomanUrduDict, DeromanizerMapping)
